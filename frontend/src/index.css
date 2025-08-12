@@ -195,6 +195,9 @@ body {
   max-width: 600px;
   width: 100%;
   margin: 0 auto;
+  padding: 10px;
+  border-radius: 10px;
+  border: 2px solid black;
 }
 
 @media (max-width: 768px) {
@@ -251,8 +254,6 @@ body {
 
 .card:hover {
   border-color: #007bff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .card.selected {
@@ -264,13 +265,102 @@ body {
   border-color: #28a745;
   background: #d4edda;
   cursor: default;
-  opacity: 0.7;
+  opacity: 0;
 }
 
 .card.wrong {
   border-color: #dc3545;
   background: #f8d7da;
   animation: shake 0.5s;
+}
+
+/* Card type colors */
+.card.english {
+  background: linear-gradient(135deg, #f8fbff 0%, #e8f4fd 100%);
+  border-color: #90caf9;
+  color: #1976d2;
+}
+
+.card.vietnamese {
+  background: linear-gradient(135deg, #fdf8ff 0%, #f5e8f7 100%);
+  border-color: #ce93d8;
+  color: #8e24aa;
+}
+
+.card.english:hover {
+  border-color: #64b5f6;
+  background: linear-gradient(135deg, #e8f4fd 0%, #d0e7ff 100%);
+  box-shadow: 0 4px 15px rgba(144, 202, 249, 0.15);
+}
+
+.card.vietnamese:hover {
+  border-color: #ba68c8;
+  background: linear-gradient(135deg, #f5e8f7 0%, #f0d0f8 100%);
+  box-shadow: 0 4px 15px rgba(206, 147, 216, 0.15);
+}
+
+.card.english.selected {
+  border-color: black;
+  background: linear-gradient(135deg, #d0e7ff 0%, #b8e6ff 100%);
+  color: black;
+}
+
+.card.vietnamese.selected {
+  border-color: black;
+  background: linear-gradient(135deg, #f0d0f8 0%, #e8c5ed 100%);
+  color: black;
+}
+
+/* Responsive adjustments for card colors */
+@media (max-width: 768px) {
+  .card.english {
+    background: linear-gradient(135deg, #f8fbff 0%, #e8f4fd 100%);
+    border-color: #90caf9;
+  }
+
+  .card.vietnamese {
+    background: linear-gradient(135deg, #fdf8ff 0%, #f5e8f7 100%);
+    border-color: #ce93d8;
+  }
+}
+
+@media (max-width: 480px) {
+  .card.english {
+    background: linear-gradient(135deg, #fafcff 0%, #f0f8ff 100%);
+    border-color: #81c784;
+  }
+
+  .card.vietnamese {
+    background: linear-gradient(135deg, #fef9ff 0%, #faf0fc 100%);
+    border-color: #c8a6c7;
+  }
+}
+
+/* Legend responsive styles */
+@media (max-width: 768px) {
+  .card-type-legend {
+    gap: 15px !important;
+    margin-bottom: 15px !important;
+  }
+
+  .legend-item {
+    padding: 6px 12px !important;
+    font-size: 14px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-type-legend {
+    gap: 10px !important;
+    margin-bottom: 15px !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  .legend-item {
+    padding: 5px 10px !important;
+    font-size: 13px !important;
+  }
 }
 
 @keyframes shake {
@@ -699,5 +789,5 @@ body {
 
 .vocab-card:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  transform: translateY(-1px);
+  /* transform: translateY(-1px); */
 }

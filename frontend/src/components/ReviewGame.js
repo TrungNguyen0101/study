@@ -487,7 +487,7 @@ const ReviewGame = () => {
           return (
             <div
               key={card.id}
-              className={`card ${isSelected ? "selected" : ""} ${
+              className={`card ${card.type} ${isSelected ? "selected" : ""} ${
                 isMatched ? "matched" : ""
               } ${isWrong ? "wrong" : ""}`}
               onClick={() => handleCardClick(card)}
