@@ -1,0 +1,52 @@
+import React, { useState } from "react";
+import AddVocabulary from "./components/AddVocabulary";
+import ReviewGame from "./components/ReviewGame";
+import VocabularyList from "./components/VocabularyList";
+import FlashcardGame from "./components/FlashcardGame";
+
+function App() {
+  const [currentPage, setCurrentPage] = useState("add");
+
+  return (
+    <div className="container">
+      <nav className="nav">
+        <h2 style={{ margin: 0, color: "#333", flexGrow: 1 }}>
+          📚 Ứng dụng Luyện Từ Vựng
+        </h2>
+        <button
+          className={`nav-button ${currentPage === "add" ? "active" : ""}`}
+          onClick={() => setCurrentPage("add")}
+        >
+          ➕ Thêm
+        </button>
+        <button
+          className={`nav-button ${currentPage === "list" ? "active" : ""}`}
+          onClick={() => setCurrentPage("list")}
+        >
+          📋 Danh sách
+        </button>
+        <button
+          className={`nav-button ${
+            currentPage === "flashcard" ? "active" : ""
+          }`}
+          onClick={() => setCurrentPage("flashcard")}
+        >
+          🎴 Flashcard
+        </button>
+        <button
+          className={`nav-button ${currentPage === "review" ? "active" : ""}`}
+          onClick={() => setCurrentPage("review")}
+        >
+          🎮 Ôn tập
+        </button>
+      </nav>
+
+      {currentPage === "add" && <AddVocabulary />}
+      {currentPage === "list" && <VocabularyList />}
+      {currentPage === "flashcard" && <FlashcardGame />}
+      {currentPage === "review" && <ReviewGame />}
+    </div>
+  );
+}
+
+export default App;
