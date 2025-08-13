@@ -111,7 +111,7 @@ body {
 
 @media (max-width: 480px) {
   .page {
-    padding: 15px;
+    padding: 5px;
     border-radius: 6px;
     min-height: 400px;
   }
