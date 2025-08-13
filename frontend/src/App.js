@@ -1,11 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AddVocabulary from "./components/AddVocabulary";
 import ReviewGame from "./components/ReviewGame";
 import VocabularyList from "./components/VocabularyList";
 import FlashcardGame from "./components/FlashcardGame";
 
 function App() {
-  const [currentPage, setCurrentPage] = useState("add");
+  const [currentPage, setCurrentPage] = useState(() => {
+    // Lấy currentPage từ localStorage, mặc định là "add"
+    return localStorage.getItem("currentPage") || "add";
+  });
+
+  // Lưu currentPage vào localStorage mỗi khi nó thay đổi
+  useEffect(() => {
+    localStorage.setItem("currentPage", currentPage);
+  }, [currentPage]);
 
   return (
     <div className="container">
