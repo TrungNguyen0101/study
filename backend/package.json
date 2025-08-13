@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "build": "echo 'No build step required'",
     "dev": "nodemon server.js --watch . --ext js,json --ignore node_modules/",
     "watch": "nodemon server.js --watch . --ext js,json --ignore node_modules/"
   },
