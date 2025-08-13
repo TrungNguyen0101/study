@@ -24,10 +24,9 @@ const AddVocabulary = () => {
   const [messageType, setMessageType] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingWordInfo, setIsLoadingWordInfo] = useState(false);
-  const [isLoadingTranslation, setIsLoadingTranslation] = useState(false);
 
-  // Lấy phiên âm khi nhấn button
-  const fetchPronunciation = useCallback(async () => {
+  // Lấy tất cả thông tin tự động (nghĩa, loại từ, phiên âm)
+  const fetchAllInfo = useCallback(async () => {
     if (!formData.english.trim() || formData.english.length < 2) {
       setMessage("Vui lòng nhập từ tiếng Anh trước");
       setMessageType("error");
@@ -40,120 +39,47 @@ const AddVocabulary = () => {
 
     setIsLoadingWordInfo(true);
     try {
-      const response = await vocabularyAPI.getWordInfo(formData.english.trim());
-      const { pronunciation } = response.data;
+      // Lấy thông tin từ vựng (phiên âm, loại từ)
+      const wordInfoResponse = await vocabularyAPI.getWordInfo(
+        formData.english.trim()
+      );
+      console.log("🚀 ~ AddVocabulary ~ wordInfoResponse:", wordInfoResponse);
 
+      // Lấy bản dịch tiếng Việt
+      const translationResponse = await vocabularyAPI.getTranslation(
+        formData.english.trim()
+      );
+      console.log(
+        "🚀 ~ AddVocabulary ~ translationResponse:",
+        translationResponse
+      );
+
+      const { pronunciation, wordType } = wordInfoResponse.data;
+      const { vietnamese, success } = translationResponse.data;
+
+      // Cập nhật tất cả thông tin
       setFormData((prev) => ({
         ...prev,
         pronunciation: pronunciation || prev.pronunciation,
-      }));
-
-      if (pronunciation) {
-        setMessage("Đã tạo phiên âm thành công!");
-        setMessageType("success");
-        setTimeout(() => {
-          setMessage("");
-          setMessageType("");
-        }, 3000);
-      }
-    } catch (error) {
-      console.log("Could not fetch pronunciation:", error);
-      const errorMessage =
-        error.response?.status === 404
-          ? "API phiên âm không khả dụng. Vui lòng nhập phiên âm thủ công."
-          : "Không thể tạo phiên âm tự động. Vui lòng thử lại sau.";
-      setMessage(errorMessage);
-      setMessageType("error");
-      setTimeout(() => {
-        setMessage("");
-        setMessageType("");
-      }, 5000);
-    } finally {
-      setIsLoadingWordInfo(false);
-    }
-  }, [formData.english]);
-
-  // Lấy loại từ khi nhấn button
-  const fetchWordType = useCallback(async () => {
-    if (!formData.english.trim() || formData.english.length < 2) {
-      setMessage("Vui lòng nhập từ tiếng Anh trước");
-      setMessageType("error");
-      setTimeout(() => {
-        setMessage("");
-        setMessageType("");
-      }, 3000);
-      return;
-    }
-
-    setIsLoadingWordInfo(true);
-    try {
-      const response = await vocabularyAPI.getWordInfo(formData.english.trim());
-      console.log("🚀 ~ AddVocabulary ~ response:", response);
-      const { wordType } = response.data;
-
-      setFormData((prev) => ({
-        ...prev,
         wordType: wordType || prev.wordType,
-      }));
-
-      if (wordType) {
-        setMessage("Đã tạo loại từ thành công!");
-        setMessageType("success");
-        setTimeout(() => {
-          setMessage("");
-          setMessageType("");
-        }, 3000);
-      }
-    } catch (error) {
-      console.log("Could not fetch word type:", error);
-      const errorMessage =
-        error.response?.status === 404
-          ? "API loại từ không khả dụng. Vui lòng chọn loại từ thủ công."
-          : "Không thể tạo loại từ tự động. Vui lòng thử lại sau.";
-      setMessage(errorMessage);
-      setMessageType("error");
-      setTimeout(() => {
-        setMessage("");
-        setMessageType("");
-      }, 5000);
-    } finally {
-      setIsLoadingWordInfo(false);
-    }
-  }, [formData.english]);
-
-  // Lấy bản dịch tiếng Việt khi nhấn button
-  const fetchTranslation = useCallback(async () => {
-    if (!formData.english.trim() || formData.english.length < 2) {
-      setMessage("Vui lòng nhập từ tiếng Anh trước");
-      setMessageType("error");
-      setTimeout(() => {
-        setMessage("");
-        setMessageType("");
-      }, 3000);
-      return;
-    }
-
-    setIsLoadingTranslation(true);
-    try {
-      const response = await vocabularyAPI.getTranslation(
-        formData.english.trim()
-      );
-      const { vietnamese, success } = response.data;
-
-      setFormData((prev) => ({
-        ...prev,
         vietnamese: vietnamese || prev.vietnamese,
       }));
 
-      if (success) {
-        setMessage("Đã tạo bản dịch thành công!");
+      // Thông báo kết quả
+      let successCount = 0;
+      if (pronunciation) successCount++;
+      if (wordType) successCount++;
+      if (success && vietnamese) successCount++;
+
+      if (successCount > 0) {
+        setMessage(`Đã tạo thành công ${successCount} thông tin!`);
         setMessageType("success");
         setTimeout(() => {
           setMessage("");
           setMessageType("");
         }, 3000);
       } else {
-        setMessage("Bản dịch có thể chưa chính xác, vui lòng kiểm tra lại");
+        setMessage("Không thể tạo thông tin tự động. Vui lòng nhập thủ công.");
         setMessageType("error");
         setTimeout(() => {
           setMessage("");
@@ -161,11 +87,9 @@ const AddVocabulary = () => {
         }, 3000);
       }
     } catch (error) {
-      console.log("Could not fetch translation:", error);
+      console.log("Could not fetch all info:", error);
       const errorMessage =
-        error.response?.status === 404
-          ? "API dịch thuật không khả dụng. Vui lòng nhập nghĩa thủ công."
-          : "Không thể tạo bản dịch tự động. Vui lòng thử lại sau.";
+        "Không thể tạo thông tin tự động. Vui lòng thử lại sau.";
       setMessage(errorMessage);
       setMessageType("error");
       setTimeout(() => {
@@ -173,7 +97,7 @@ const AddVocabulary = () => {
         setMessageType("");
       }, 5000);
     } finally {
-      setIsLoadingTranslation(false);
+      setIsLoadingWordInfo(false);
     }
   }, [formData.english]);
 
@@ -258,115 +182,100 @@ const AddVocabulary = () => {
 
         <div className="form-group">
           <label htmlFor="vietnamese">Nghĩa tiếng Việt:</label>
-          <div className="pronunciation-input-group">
-            <input
-              type="text"
-              id="vietnamese"
-              name="vietnamese"
-              value={formData.vietnamese}
-              onChange={handleChange}
-              placeholder="Nhập nghĩa tiếng Việt hoặc click nút tạo tự động..."
-              disabled={isLoading}
-              className="pronunciation-input"
-            />
-            <button
-              type="button"
-              onClick={fetchTranslation}
-              disabled={
-                isLoading || isLoadingTranslation || !formData.english.trim()
-              }
-              className="pronunciation-btn"
-              style={{
-                backgroundColor: isLoadingTranslation ? "#6c757d" : "#17a2b8",
-                cursor:
-                  isLoading || isLoadingTranslation || !formData.english.trim()
-                    ? "not-allowed"
-                    : "pointer",
-              }}
-            >
-              {isLoadingTranslation ? "Đang dịch..." : "🌐 Tạo nghĩa"}
-            </button>
-          </div>
+          <input
+            type="text"
+            id="vietnamese"
+            name="vietnamese"
+            value={formData.vietnamese}
+            onChange={handleChange}
+            placeholder="Nhập nghĩa tiếng Việt..."
+            disabled={isLoading}
+          />
         </div>
 
         <div className="form-group">
           <label htmlFor="wordType">Loại từ:</label>
-          <div className="pronunciation-input-group">
-            <select
-              id="wordType"
-              name="wordType"
-              value={formData.wordType}
-              onChange={handleChange}
-              disabled={isLoading}
-              className="pronunciation-input"
-              style={{
-                fontSize: "16px",
-                backgroundColor: "white",
-              }}
-            >
-              {wordTypes.map((type) => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              onClick={fetchWordType}
-              disabled={
-                isLoading || isLoadingWordInfo || !formData.english.trim()
-              }
-              className="pronunciation-btn"
-              style={{
-                backgroundColor: isLoadingWordInfo ? "#6c757d" : "#ffc107",
-                cursor:
-                  isLoading || isLoadingWordInfo || !formData.english.trim()
-                    ? "not-allowed"
-                    : "pointer",
-              }}
-            >
-              {isLoadingWordInfo ? "Đang tạo..." : "📝 Tạo loại từ"}
-            </button>
-          </div>
+          <select
+            id="wordType"
+            name="wordType"
+            value={formData.wordType}
+            onChange={handleChange}
+            disabled={isLoading}
+            style={{
+              width: "100%",
+              padding: "12px",
+              border: "2px solid #ddd",
+              borderRadius: "6px",
+              fontSize: "16px",
+              backgroundColor: "white",
+            }}
+          >
+            {wordTypes.map((type) => (
+              <option key={type.value} value={type.value}>
+                {type.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="form-group">
           <label htmlFor="pronunciation">Phiên âm:</label>
-          <div className="pronunciation-input-group">
-            <input
-              type="text"
-              id="pronunciation"
-              name="pronunciation"
-              value={formData.pronunciation}
-              onChange={handleChange}
-              placeholder="Nhập phiên âm hoặc click nút tạo tự động..."
-              disabled={isLoading}
-              className="pronunciation-input"
-            />
-            <button
-              type="button"
-              onClick={fetchPronunciation}
-              disabled={
+          <input
+            type="text"
+            id="pronunciation"
+            name="pronunciation"
+            value={formData.pronunciation}
+            onChange={handleChange}
+            placeholder="Nhập phiên âm..."
+            disabled={isLoading}
+          />
+        </div>
+
+        {/* Button tự động lấy tất cả thông tin */}
+        <div
+          className="form-group"
+          style={{ textAlign: "center", marginTop: "20px" }}
+        >
+          <button
+            type="button"
+            onClick={fetchAllInfo}
+            disabled={
+              isLoading || isLoadingWordInfo || !formData.english.trim()
+            }
+            className="btn"
+            style={{
+              padding: "15px 30px",
+              backgroundColor: isLoadingWordInfo ? "#6c757d" : "#007bff",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              fontSize: "16px",
+              fontWeight: "bold",
+              cursor:
                 isLoading || isLoadingWordInfo || !formData.english.trim()
-              }
-              className="pronunciation-btn"
-              style={{
-                backgroundColor: isLoadingWordInfo ? "#6c757d" : "#28a745",
-                cursor:
-                  isLoading || isLoadingWordInfo || !formData.english.trim()
-                    ? "not-allowed"
-                    : "pointer",
-              }}
-            >
-              {isLoadingWordInfo ? "Đang tạo..." : "🔊 Tạo phiên âm"}
-            </button>
-          </div>
+                  ? "not-allowed"
+                  : "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              margin: "0 auto",
+            }}
+          >
+            {isLoadingWordInfo ? (
+              <>
+                <span style={{ animation: "spin 1s linear infinite" }}>⏳</span>
+                Đang tạo thông tin...
+              </>
+            ) : (
+              <>🚀 Tự động lấy tất cả thông tin</>
+            )}
+          </button>
         </div>
 
         <button
           type="submit"
           className="btn btn-primary"
-          disabled={isLoading || isLoadingWordInfo || isLoadingTranslation}
+          disabled={isLoading || isLoadingWordInfo}
         >
           {isLoading ? "Đang thêm..." : "Thêm từ vựng"}
         </button>
@@ -377,13 +286,11 @@ const AddVocabulary = () => {
         <ul style={{ marginLeft: "20px", marginTop: "10px" }}>
           <li>Nhập từ tiếng Anh</li>
           <li>
-            Nhập nghĩa tiếng Việt hoặc click "🌐 Tạo nghĩa" để tự động dịch
+            Nhập nghĩa tiếng Việt, chọn loại từ, nhập phiên âm (hoặc để trống)
           </li>
           <li>
-            Chọn loại từ phù hợp hoặc click "📝 Tạo loại từ" để tự động xác định
-          </li>
-          <li>
-            Nhập phiên âm manual hoặc click "🔊 Tạo phiên âm" để tự động tạo
+            Click "🚀 Tự động lấy tất cả thông tin" để tự động tạo nghĩa, loại
+            từ và phiên âm
           </li>
           <li>Nhấn "Thêm từ vựng" để lưu</li>
           <li>Từ vựng đã thêm sẽ xuất hiện trong phần ôn tập và danh sách</li>
