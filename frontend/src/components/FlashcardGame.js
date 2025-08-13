@@ -3,6 +3,7 @@ import { vocabularyAPI } from "../services/api";
 
 const FlashcardGame = () => {
   const [vocabularies, setVocabularies] = useState([]);
+  console.log("🚀 ~ FlashcardGame ~ vocabularies:", vocabularies);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [showAnswer, setShowAnswer] = useState(false);
@@ -314,6 +315,19 @@ const FlashcardGame = () => {
                   }}
                 >
                   {currentVocab.pronunciation}
+                </div>
+              )}
+
+              {currentVocab.wordType && (
+                <div
+                  style={{
+                    fontSize: "18px",
+                    color: "#666",
+                    fontStyle: "italic",
+                    marginBottom: "15px",
+                  }}
+                >
+                  {currentVocab.wordType}
                 </div>
               )}
 
