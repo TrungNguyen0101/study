@@ -54,6 +54,7 @@ const ReviewGame = () => {
         type: "english",
         pairId: vocab._id,
         vocabData: vocab,
+        wordType: vocab.wordType,
       });
 
       cards.push({
@@ -182,12 +183,15 @@ const ReviewGame = () => {
     setMatchedPairs(new Set());
     setGameComplete(false);
 
-    // Load next page if available, otherwise reload current page
+    // Load next page if available, otherwise go back to first page
     if (pagination.hasNext) {
       setCurrentPage((prev) => prev + 1);
       loadVocabularies(currentPage + 1);
     } else {
-      loadVocabularies(currentPage);
+      // Quay về page đầu tiên
+      setCurrentPage(1);
+      loadVocabularies(1);
+      // loadVocabularies(currentPage);
     }
   };
 
@@ -394,8 +398,24 @@ const ReviewGame = () => {
                 isMatched ? "matched" : ""
               } ${isWrong ? "wrong" : ""}`}
               onClick={() => handleCardClick(card)}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
             >
               {card.text}
+              <br />
+              <i
+                style={{
+                  fontSize: "10px",
+                  color: "black",
+                  fontWeight: "bold",
+                }}
+              >
+                {card.wordType}
+              </i>
             </div>
           );
         })}
