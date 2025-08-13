@@ -164,10 +164,21 @@ class PronunciationService {
           }
         }
 
+        let wordType = "";
+        if (entry.meanings && entry.meanings.length > 0) {
+          for (const meaning of entry.meanings) {
+            if (meaning.partOfSpeech) {
+              wordType = meaning.partOfSpeech;
+              break;
+            }
+          }
+        }
+
         return {
           pronunciation:
             pronunciation || this.generateAdvancedPronunciation(word),
           definitions: entry.meanings?.[0]?.definitions?.slice(0, 2) || [],
+          wordType: wordType,
         };
       }
 

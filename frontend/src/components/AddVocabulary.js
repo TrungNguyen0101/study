@@ -73,6 +73,54 @@ const AddVocabulary = () => {
     }
   }, [formData.english]);
 
+  // Lấy loại từ khi nhấn button
+  const fetchWordType = useCallback(async () => {
+    if (!formData.english.trim() || formData.english.length < 2) {
+      setMessage("Vui lòng nhập từ tiếng Anh trước");
+      setMessageType("error");
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 3000);
+      return;
+    }
+
+    setIsLoadingWordInfo(true);
+    try {
+      const response = await vocabularyAPI.getWordInfo(formData.english.trim());
+      console.log("🚀 ~ AddVocabulary ~ response:", response);
+      const { wordType } = response.data;
+
+      setFormData((prev) => ({
+        ...prev,
+        wordType: wordType || prev.wordType,
+      }));
+
+      if (wordType) {
+        setMessage("Đã tạo loại từ thành công!");
+        setMessageType("success");
+        setTimeout(() => {
+          setMessage("");
+          setMessageType("");
+        }, 3000);
+      }
+    } catch (error) {
+      console.log("Could not fetch word type:", error);
+      const errorMessage =
+        error.response?.status === 404
+          ? "API loại từ không khả dụng. Vui lòng chọn loại từ thủ công."
+          : "Không thể tạo loại từ tự động. Vui lòng thử lại sau.";
+      setMessage(errorMessage);
+      setMessageType("error");
+      setTimeout(() => {
+        setMessage("");
+        setMessageType("");
+      }, 5000);
+    } finally {
+      setIsLoadingWordInfo(false);
+    }
+  }, [formData.english]);
+
   // Lấy bản dịch tiếng Việt khi nhấn button
   const fetchTranslation = useCallback(async () => {
     if (!formData.english.trim() || formData.english.length < 2) {
@@ -243,27 +291,43 @@ const AddVocabulary = () => {
 
         <div className="form-group">
           <label htmlFor="wordType">Loại từ:</label>
-          <select
-            id="wordType"
-            name="wordType"
-            value={formData.wordType}
-            onChange={handleChange}
-            disabled={isLoading}
-            style={{
-              width: "100%",
-              padding: "12px",
-              border: "2px solid #ddd",
-              borderRadius: "6px",
-              fontSize: "16px",
-              backgroundColor: "white",
-            }}
-          >
-            {wordTypes.map((type) => (
-              <option key={type.value} value={type.value}>
-                {type.label}
-              </option>
-            ))}
-          </select>
+          <div className="pronunciation-input-group">
+            <select
+              id="wordType"
+              name="wordType"
+              value={formData.wordType}
+              onChange={handleChange}
+              disabled={isLoading}
+              className="pronunciation-input"
+              style={{
+                fontSize: "16px",
+                backgroundColor: "white",
+              }}
+            >
+              {wordTypes.map((type) => (
+                <option key={type.value} value={type.value}>
+                  {type.label}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={fetchWordType}
+              disabled={
+                isLoading || isLoadingWordInfo || !formData.english.trim()
+              }
+              className="pronunciation-btn"
+              style={{
+                backgroundColor: isLoadingWordInfo ? "#6c757d" : "#ffc107",
+                cursor:
+                  isLoading || isLoadingWordInfo || !formData.english.trim()
+                    ? "not-allowed"
+                    : "pointer",
+              }}
+            >
+              {isLoadingWordInfo ? "Đang tạo..." : "📝 Tạo loại từ"}
+            </button>
+          </div>
         </div>
 
         <div className="form-group">
@@ -315,7 +379,9 @@ const AddVocabulary = () => {
           <li>
             Nhập nghĩa tiếng Việt hoặc click "🌐 Tạo nghĩa" để tự động dịch
           </li>
-          <li>Chọn loại từ phù hợp</li>
+          <li>
+            Chọn loại từ phù hợp hoặc click "📝 Tạo loại từ" để tự động xác định
+          </li>
           <li>
             Nhập phiên âm manual hoặc click "🔊 Tạo phiên âm" để tự động tạo
           </li>

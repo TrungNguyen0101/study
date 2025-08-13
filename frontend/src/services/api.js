@@ -42,6 +42,10 @@ export const vocabularyAPI = {
   updateMemorized: (id, memorized) =>
     api.put(`/vocabulary/memorized/${id}`, { memorized }),
 
+  // Cập nhật trạng thái studied
+  updateStudied: (id, studied) =>
+    api.put(`/vocabulary/studied/${id}`, { studied }),
+
   // Cập nhật trạng thái ôn tập
   updateReview: (id) => api.put(`/vocabulary/review/${id}`),
 
