@@ -21,32 +21,34 @@ function App() {
         <h2 style={{ margin: 0, color: "#333", flexGrow: 1 }}>
           📚 Ứng dụng Luyện Từ Vựng
         </h2>
-        <button
-          className={`nav-button ${currentPage === "add" ? "active" : ""}`}
-          onClick={() => setCurrentPage("add")}
-        >
-          ➕ Thêm
-        </button>
-        <button
-          className={`nav-button ${currentPage === "list" ? "active" : ""}`}
-          onClick={() => setCurrentPage("list")}
-        >
-          📋 Danh sách
-        </button>
-        <button
-          className={`nav-button ${
-            currentPage === "flashcard" ? "active" : ""
-          }`}
-          onClick={() => setCurrentPage("flashcard")}
-        >
-          🎴 Flashcard
-        </button>
-        <button
-          className={`nav-button ${currentPage === "review" ? "active" : ""}`}
-          onClick={() => setCurrentPage("review")}
-        >
-          🎮 Ôn tập
-        </button>
+        <div className="nav-buttons">
+          <button
+            className={`nav-button ${currentPage === "add" ? "active" : ""}`}
+            onClick={() => setCurrentPage("add")}
+          >
+            ➕ Add
+          </button>
+          <button
+            className={`nav-button ${currentPage === "list" ? "active" : ""}`}
+            onClick={() => setCurrentPage("list")}
+          >
+            📋 List
+          </button>
+          <button
+            className={`nav-button ${
+              currentPage === "flashcard" ? "active" : ""
+            }`}
+            onClick={() => setCurrentPage("flashcard")}
+          >
+            🎴 Flashcard
+          </button>
+          <button
+            className={`nav-button ${currentPage === "review" ? "active" : ""}`}
+            onClick={() => setCurrentPage("review")}
+          >
+            🎮 Review
+          </button>
+        </div>
       </nav>
 
       {currentPage === "add" && <AddVocabulary />}

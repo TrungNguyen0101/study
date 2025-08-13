@@ -240,7 +240,6 @@ const ReviewGame = () => {
   if (gameCards.length === 0) {
     return (
       <div className="page">
-        <h1>Ôn Tập Từ Vựng</h1>
         <div style={{ textAlign: "center", padding: "60px 20px" }}>
           <div style={{ fontSize: "72px", marginBottom: "20px" }}>🎉</div>
           <h3 style={{ color: "#28a745", marginBottom: "15px" }}>
@@ -308,8 +307,6 @@ const ReviewGame = () => {
 
   return (
     <div className="page">
-      <h1>Ôn Tập Từ Vựng</h1>
-
       {/* Controls */}
       <div
         style={{
@@ -345,101 +342,6 @@ const ReviewGame = () => {
             <option value={32}>32 thẻ (16 cặp)</option>
           </select>
         </div>
-
-        {/* Pagination Info */}
-        {pagination.total > 1 && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              fontSize: "14px",
-              color: "#666",
-            }}
-            className="pagination-info"
-          >
-            <span>
-              Trang {pagination.current}/{pagination.total} (
-              {pagination.totalItems} từ chưa nhớ)
-            </span>
-            <div className="pagination-controls">
-              <button
-                onClick={() => changePage(currentPage - 1)}
-                disabled={!pagination.hasPrev || isLoading}
-                className="pagination-btn"
-                title="Trang trước"
-              >
-                ←
-              </button>
-
-              {/* Numbered pagination */}
-              <div className="page-numbers">
-                {Array.from({ length: pagination.total }, (_, index) => {
-                  const pageNum = index + 1;
-                  const isCurrent = pageNum === pagination.current;
-                  const isNearby = Math.abs(pageNum - pagination.current) <= 2;
-
-                  // Hiển thị tất cả trang nếu ít hơn 7 trang
-                  // Hoặc chỉ hiển thị trang gần trang hiện tại
-                  if (
-                    pagination.total <= 7 ||
-                    isNearby ||
-                    pageNum === 1 ||
-                    pageNum === pagination.total
-                  ) {
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => changePage(pageNum)}
-                        disabled={isCurrent || isLoading}
-                        className={`page-number ${isCurrent ? "current" : ""}`}
-                        title={`Trang ${pageNum}`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  }
-
-                  // Hiển thị dấu "..." cho các trang bị ẩn
-                  if (pageNum === 2 && pagination.current > 4) {
-                    return (
-                      <span
-                        key={`ellipsis-${pageNum}`}
-                        className="page-ellipsis"
-                      >
-                        ...
-                      </span>
-                    );
-                  }
-                  if (
-                    pageNum === pagination.total - 1 &&
-                    pagination.current < pagination.total - 3
-                  ) {
-                    return (
-                      <span
-                        key={`ellipsis-${pageNum}`}
-                        className="page-ellipsis"
-                      >
-                        ...
-                      </span>
-                    );
-                  }
-
-                  return null;
-                })}
-              </div>
-
-              <button
-                onClick={() => changePage(currentPage + 1)}
-                disabled={!pagination.hasNext || isLoading}
-                className="pagination-btn"
-                title="Trang sau"
-              >
-                →
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="stats">
@@ -498,6 +400,96 @@ const ReviewGame = () => {
           );
         })}
       </div>
+
+      {/* Pagination Info */}
+      {pagination.total > 1 && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            fontSize: "14px",
+            color: "#666",
+            marginTop: "10px",
+          }}
+          className="pagination-info"
+        >
+          <span>
+            Trang {pagination.current}/{pagination.total} (
+            {pagination.totalItems} từ chưa nhớ)
+          </span>
+          <div className="pagination-controls">
+            <button
+              onClick={() => changePage(currentPage - 1)}
+              disabled={!pagination.hasPrev || isLoading}
+              className="pagination-btn"
+              title="Trang trước"
+            >
+              ←
+            </button>
+
+            {/* Numbered pagination */}
+            <div className="page-numbers">
+              {Array.from({ length: pagination.total }, (_, index) => {
+                const pageNum = index + 1;
+                const isCurrent = pageNum === pagination.current;
+                const isNearby = Math.abs(pageNum - pagination.current) <= 2;
+
+                // Hiển thị tất cả trang nếu ít hơn 7 trang
+                // Hoặc chỉ hiển thị trang gần trang hiện tại
+                if (
+                  pagination.total <= 7 ||
+                  isNearby ||
+                  pageNum === 1 ||
+                  pageNum === pagination.total
+                ) {
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => changePage(pageNum)}
+                      disabled={isCurrent || isLoading}
+                      className={`page-number ${isCurrent ? "current" : ""}`}
+                      title={`Trang ${pageNum}`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                }
+
+                // Hiển thị dấu "..." cho các trang bị ẩn
+                if (pageNum === 2 && pagination.current > 4) {
+                  return (
+                    <span key={`ellipsis-${pageNum}`} className="page-ellipsis">
+                      ...
+                    </span>
+                  );
+                }
+                if (
+                  pageNum === pagination.total - 1 &&
+                  pagination.current < pagination.total - 3
+                ) {
+                  return (
+                    <span key={`ellipsis-${pageNum}`} className="page-ellipsis">
+                      ...
+                    </span>
+                  );
+                }
+
+                return null;
+              })}
+            </div>
+
+            <button
+              onClick={() => changePage(currentPage + 1)}
+              disabled={!pagination.hasNext || isLoading}
+              className="pagination-btn"
+              title="Trang sau"
+            >
+              →
+            </button>
+          </div>
+        </div>
+      )}
 
       <div style={{ marginTop: "30px" }}>
         <h3>Hướng dẫn:</h3>

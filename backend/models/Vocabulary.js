@@ -42,6 +42,10 @@ const vocabularySchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  studied: {
+    type: Boolean,
+    default: false,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

@@ -91,6 +91,27 @@ const FlashcardGame = () => {
     }
   };
 
+  // Đánh dấu từ đã học (không ưu tiên hiển thị nữa)
+  const markAsStudied = async () => {
+    if (vocabularies.length === 0) return;
+
+    const currentVocab = vocabularies[currentIndex];
+    try {
+      await vocabularyAPI.updateStudied(currentVocab._id, true);
+
+      // Cập nhật từ trong danh sách hiện tại
+      const updatedVocabularies = vocabularies.map((vocab, index) =>
+        index === currentIndex ? { ...vocab, studied: true } : vocab
+      );
+      setVocabularies(updatedVocabularies);
+
+      // Chuyển đến từ tiếp theo
+      nextCard();
+    } catch (error) {
+      alert("Có lỗi xảy ra khi đánh dấu từ đã học");
+    }
+  };
+
   // Next card
   const nextCard = () => {
     setStudiedCount((prev) => prev + 1);
@@ -156,8 +177,6 @@ const FlashcardGame = () => {
 
   return (
     <div className="page">
-      <h1>Flashcard</h1>
-
       {/* Statistics */}
       <div className="stats">
         <div className="stat-item">
@@ -215,6 +234,46 @@ const FlashcardGame = () => {
           {!showAnswer ? (
             // Hiển thị từ tiếng Anh
             <div>
+              {/* Status indicators */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: "10px",
+                  right: "10px",
+                  display: "flex",
+                  gap: "5px",
+                }}
+              >
+                {currentVocab.studied && (
+                  <span
+                    style={{
+                      fontSize: "14px",
+                      background: "#17a2b8",
+                      color: "white",
+                      padding: "2px 8px",
+                      borderRadius: "12px",
+                    }}
+                    title="Đã học"
+                  >
+                    📖
+                  </span>
+                )}
+                {currentVocab.memorized && (
+                  <span
+                    style={{
+                      fontSize: "14px",
+                      background: "#28a745",
+                      color: "white",
+                      padding: "2px 8px",
+                      borderRadius: "12px",
+                    }}
+                    title="Đã nhớ"
+                  >
+                    ✅
+                  </span>
+                )}
+              </div>
+
               <div
                 style={{
                   fontSize: "32px",
@@ -365,6 +424,20 @@ const FlashcardGame = () => {
         }}
       >
         <button
+          onClick={markAsStudied}
+          className="btn btn-info"
+          style={{
+            padding: "15px 25px",
+            fontSize: "16px",
+            backgroundColor: "#17a2b8",
+            fontWeight: "bold",
+          }}
+          disabled={currentVocab.studied}
+        >
+          📖 {currentVocab.studied ? "Đã học" : "Đánh dấu đã học"}
+        </button>
+
+        <button
           onClick={markAsMemorized}
           className="btn btn-success"
           style={{
@@ -379,11 +452,11 @@ const FlashcardGame = () => {
         {pagination.hasNext && (
           <button
             onClick={loadNextSet}
-            className="btn btn-info"
+            className="btn btn-secondary"
             style={{
               padding: "15px 25px",
               fontSize: "16px",
-              backgroundColor: "#17a2b8",
+              backgroundColor: "#6c757d",
             }}
           >
             📚 Bộ từ tiếp theo
@@ -398,8 +471,17 @@ const FlashcardGame = () => {
           <li>Click vào thẻ hoặc nút "Hiện nghĩa" để xem đáp án</li>
           <li>Sử dụng nút "Trước" và "Sau" để điều hướng</li>
           <li>Click 🔊 để nghe phát âm</li>
-          <li>Nhấn "✅ Đã nhớ từ này" khi bạn đã thuộc từ đó</li>
-          <li>Từ đã đánh dấu "nhớ" sẽ không xuất hiện trong ôn tập nữa</li>
+          <li>
+            📖 <strong>"Đã học":</strong> Từ này sẽ không được ưu tiên hiển thị
+            nữa (nhưng vẫn xuất hiện trong ôn tập)
+          </li>
+          <li>
+            ✅ <strong>"Đã nhớ":</strong> Từ này sẽ được loại bỏ hoàn toàn khỏi
+            ôn tập
+          </li>
+          <li>
+            Hệ thống ưu tiên hiển thị: <em>Chưa học → Chưa ôn → Ôn lâu nhất</em>
+          </li>
         </ul>
       </div>
     </div>

@@ -112,11 +112,12 @@ router.get("/review", async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const skip = (page - 1) * limit;
 
-    // Lấy từ vựng chưa memorized theo độ ưu tiên: chưa ôn -> ôn lâu nhất
+    // Lấy từ vựng chưa memorized theo độ ưu tiên: chưa studied -> chưa ôn -> ôn lâu nhất
     const vocabularies = await Vocabulary.find({ memorized: false })
       .sort({
+        studied: 1, // false sẽ đứng đầu (chưa học)
         lastReviewed: 1, // null sẽ đứng đầu (chưa ôn)
-        createdAt: -1,
+        createdAt: -1, // từ mới tạo trước
       })
       .skip(skip)
       .limit(limit);
@@ -182,6 +183,30 @@ router.put("/memorized/:id", async (req, res) => {
       message: `Vocabulary marked as ${
         memorized ? "memorized" : "not memorized"
       }`,
+      vocabulary,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Cập nhật trạng thái studied
+router.put("/studied/:id", async (req, res) => {
+  try {
+    const { studied } = req.body;
+
+    const vocabulary = await Vocabulary.findByIdAndUpdate(
+      req.params.id,
+      { studied: studied },
+      { new: true }
+    );
+
+    if (!vocabulary) {
+      return res.status(404).json({ error: "Vocabulary not found" });
+    }
+
+    res.json({
+      message: `Vocabulary marked as ${studied ? "studied" : "not studied"}`,
       vocabulary,
     });
   } catch (error) {
