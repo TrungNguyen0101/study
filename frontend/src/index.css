@@ -210,7 +210,7 @@ body {
 @media (max-width: 480px) {
   .game-grid {
     gap: 8px;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, 1fr) !important;
   }
 }
 
@@ -398,8 +398,12 @@ body {
 @media (max-width: 480px) {
   .stats {
     gap: 10px;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
+  }
+  .pagination-info {
+    flex-direction: column;
+    width: 100%;
   }
 }
 
@@ -422,7 +426,7 @@ body {
   .stat-item {
     padding: 10px;
     min-width: 80px;
-    width: 100%;
+    width: 48%;
     max-width: 200px;
   }
 }
@@ -708,14 +712,14 @@ body {
 
 /* Mobile pagination responsive */
 @media (max-width: 768px) {
-  .pagination-controls {
+  /* .pagination-controls {
     flex-direction: column;
     gap: 10px;
     align-items: center;
-  }
+  } */
 
   .page-numbers {
-    order: 2;
+    /* order: 2; */
     margin: 5px 0;
     flex-wrap: wrap;
     justify-content: center;

@@ -327,7 +327,7 @@ const FlashcardGame = () => {
             fontSize: "16px",
           }}
         >
-          ← Trước
+          ←
         </button>
 
         <button
@@ -335,7 +335,7 @@ const FlashcardGame = () => {
           className="btn btn-primary"
           style={{
             padding: "12px 20px",
-            fontSize: "16px",
+            fontSize: "14px",
           }}
         >
           {showAnswer ? "Ẩn nghĩa" : "Hiện nghĩa"}
@@ -350,7 +350,7 @@ const FlashcardGame = () => {
             fontSize: "16px",
           }}
         >
-          Sau →
+          →
         </button>
       </div>
 

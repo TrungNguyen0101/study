@@ -356,6 +356,7 @@ const ReviewGame = () => {
               fontSize: "14px",
               color: "#666",
             }}
+            className="pagination-info"
           >
             <span>
               Trang {pagination.current}/{pagination.total} (
@@ -368,7 +369,7 @@ const ReviewGame = () => {
                 className="pagination-btn"
                 title="Trang trước"
               >
-                ← Trước
+                ←
               </button>
 
               {/* Numbered pagination */}
@@ -434,7 +435,7 @@ const ReviewGame = () => {
                 className="pagination-btn"
                 title="Trang sau"
               >
-                Sau →
+                →
               </button>
             </div>
           </div>
