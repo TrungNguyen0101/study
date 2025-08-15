@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import vocabularyAPI from "../services/api";
+import { speakEnglishWord, debugVoices } from "../utils/speechUtils";
 
 const MultipleChoiceGame = () => {
   const [currentQuestion, setCurrentQuestion] = useState(null);
@@ -178,34 +179,6 @@ const MultipleChoiceGame = () => {
 
   return (
     <div className="page">
-      {/* Thống kê */}
-      <div className="stats">
-        <div className="stat-item">
-          <h3>{stats.total}</h3>
-          <p>Tổng câu</p>
-        </div>
-        <div className="stat-item">
-          <h3 style={{ color: "#28a745" }}>{stats.correct}</h3>
-          <p>Đúng</p>
-        </div>
-        <div className="stat-item">
-          <h3 style={{ color: "#dc3545" }}>{stats.wrong}</h3>
-          <p>Sai</p>
-        </div>
-        <div className="stat-item">
-          <h3 style={{ color: "#007bff" }}>{gameSession.currentStreak}</h3>
-          <p>Streak</p>
-        </div>
-        {stats.total > 0 && (
-          <div className="stat-item">
-            <h3 style={{ color: "#6f42c1" }}>
-              {Math.round((stats.correct / stats.total) * 100)}%
-            </h3>
-            <p>Chính xác</p>
-          </div>
-        )}
-      </div>
-
       {/* Câu hỏi */}
       <div
         style={{
@@ -222,7 +195,7 @@ const MultipleChoiceGame = () => {
             backgroundColor: "white",
             border: "2px solid #007bff",
             borderRadius: "15px",
-            padding: "30px",
+            padding: "10px",
             textAlign: "center",
             boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
           }}
@@ -287,16 +260,6 @@ const MultipleChoiceGame = () => {
               {currentQuestion.wordType}
             </div>
           )}
-
-          <div
-            style={{
-              fontSize: "18px",
-              color: "#333",
-              marginTop: "20px",
-            }}
-          >
-            Chọn nghĩa tiếng Việt đúng:
-          </div>
         </div>
       </div>
 
