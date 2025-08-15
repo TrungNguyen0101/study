@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import vocabularyAPI from "../services/api";
-import { speakEnglishWord } from "../utils/speechUtils";
 
 const FlashcardGame = () => {
   const [vocabularies, setVocabularies] = useState([]);
@@ -56,9 +55,35 @@ const FlashcardGame = () => {
   };
 
   // Phát âm từ
-  const speakWord = (text) => {
-    speakEnglishWord(text).catch(console.error);
+const speakWord = (text) => {
+  if (!("speechSynthesis" in window)) return;
+
+  // Chờ danh sách voice load xong
+  const loadVoices = () => {
+    const voices = speechSynthesis.getVoices();
+    if (!voices.length) {
+      setTimeout(loadVoices, 100);
+      return;
+    }
+
+    // Tìm voice mong muốn (ví dụ giọng nam US)
+    const targetVoice = voices.find(
+      (v) => v.lang === "en-US" && v.name.toLowerCase().includes("male") // Có thể thay 'male' thành tên cụ thể
+    );
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    utterance.rate = 0.8;
+
+    if (targetVoice) {
+      utterance.voice = targetVoice;
+    }
+
+    speechSynthesis.speak(utterance);
   };
+
+  loadVoices();
+};
 
   // Đánh dấu từ đã nhớ
   const markAsMemorized = async () => {
