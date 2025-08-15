@@ -28,12 +28,11 @@ const MultipleChoiceGame = () => {
   };
 
   // Load câu hỏi mới
-  const loadNewQuestion = useCallback(async () => {
-    setIsLoading(true);
-    setSelectedAnswer(null);
-    setShowResult(false);
-
+  const loadNewQuestion = async () => {
     try {
+      setIsLoading(true);
+      setSelectedAnswer(null);
+      setShowResult(false);
       const response = await vocabularyAPI.getMultipleChoiceQuestion();
       console.log("🚀 ~ MultipleChoiceGame ~ response:", response);
       setCurrentQuestion(response.data);
@@ -45,7 +44,7 @@ const MultipleChoiceGame = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  };
 
   // Xử lý chọn đáp án
   const handleAnswerSelect = (answerIndex) => {
@@ -108,7 +107,7 @@ const MultipleChoiceGame = () => {
   // Load câu hỏi đầu tiên
   useEffect(() => {
     loadNewQuestion();
-  }, [loadNewQuestion]);
+  }, []);
 
   if (isLoading) {
     return (

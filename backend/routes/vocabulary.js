@@ -108,36 +108,33 @@ router.get("/all", async (req, res) => {
 // Lấy từ vựng để ôn tập (ưu tiên theo thời gian học và ôn tập, loại trừ từ đã nhớ)
 router.get("/review", async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 8; // Mặc định lấy 8 từ cho game 4x4
+    const limit = parseInt(req.query.limit) || 8;
     const page = parseInt(req.query.page) || 1;
     const skip = (page - 1) * limit;
 
-    // Lấy từ vựng chưa memorized theo độ ưu tiên:
-    // 1. Chưa studied (studied = false)
-    // 2. Studied lâu nhất (lastStudied cũ nhất)
-    // 3. Chưa ôn (lastReviewed = null)
-    // 4. Ôn lâu nhất (lastReviewed cũ nhất)
-    // 5. Từ mới tạo trước
+    // Lấy danh sách từ vựng theo độ ưu tiên
     const vocabularies = await Vocabulary.find({ memorized: false })
       .sort({
-        studied: 1, // false sẽ đứng đầu (chưa học)
-        lastStudied: 1, // null và date cũ sẽ đứng đầu (học lâu nhất)
-        lastReviewed: 1, // null và date cũ sẽ đứng đầu (ôn lâu nhất)
-        createdAt: -1, // từ mới tạo trước
+        studied: 1,
+        lastStudied: 1,
+        lastReviewed: 1,
+        createdAt: -1,
       })
       .skip(skip)
       .limit(limit);
 
-    // Đếm tổng số từ vựng chưa memorized
+    // ✅ Xáo trộn danh sách sau khi đã lấy đủ limit
+    const shuffledVocabularies = vocabularies.sort(() => 0.5 - Math.random());
+
     const total = await Vocabulary.countDocuments({ memorized: false });
     const totalPages = Math.ceil(total / limit);
 
     res.json({
-      vocabularies,
+      vocabularies: shuffledVocabularies, // ✅ Trả về danh sách đã xáo trộn
       pagination: {
         current: page,
         total: totalPages,
-        count: vocabularies.length,
+        count: shuffledVocabularies.length,
         totalItems: total,
         hasNext: page < totalPages,
         hasPrev: page > 1,
@@ -276,15 +273,15 @@ router.put("/:id", async (req, res) => {
 // Lấy câu hỏi multiple choice
 router.get("/multiple-choice", async (req, res) => {
   try {
-    // Lấy từ vựng để làm câu hỏi theo độ ưu tiên giống như review
+    // Lấy 50 từ vựng chưa nhớ, ưu tiên học/ôn/review
     const vocabularies = await Vocabulary.find({ memorized: false })
       .sort({
-        studied: 1, // false sẽ đứng đầu (chưa học)
-        lastStudied: 1, // null và date cũ sẽ đứng đầu (học lâu nhất)
-        lastReviewed: 1, // null và date cũ sẽ đứng đầu (ôn lâu nhất)
-        createdAt: -1, // từ mới tạo trước
+        studied: 1,
+        lastStudied: 1,
+        lastReviewed: 1,
+        createdAt: -1,
       })
-      .limit(50); // Lấy 50 từ để có nhiều lựa chọn
+      .limit(50);
 
     if (vocabularies.length === 0) {
       return res
@@ -292,16 +289,17 @@ router.get("/multiple-choice", async (req, res) => {
         .json({ error: "No vocabularies available for quiz" });
     }
 
-    // Chọn từ đầu tiên làm câu hỏi (từ có độ ưu tiên cao nhất)
-    const correctVocab = vocabularies[0];
+    // ✅ Chọn ngẫu nhiên 1 từ trong danh sách 50 từ
+    const randomIndex = Math.floor(Math.random() * vocabularies.length);
+    const correctVocab = vocabularies[randomIndex];
 
-    // Tạo 3 đáp án sai ngẫu nhiên từ các từ khác
-    const otherVocabs = vocabularies.slice(1);
+    // Lấy các từ khác (không trùng từ đúng)
+    const otherVocabs = vocabularies.filter((v, idx) => idx !== randomIndex);
+
     const wrongAnswers = [];
 
-    // Nếu có ít hơn 3 từ khác, lấy tất cả
     if (otherVocabs.length < 3) {
-      // Lấy thêm từ từ tất cả từ vựng (kể cả đã memorized) để đủ đáp án
+      // Nếu chưa đủ 3 đáp án sai, lấy thêm từ khác (kể cả đã memorized)
       const additionalVocabs = await Vocabulary.find({
         _id: { $nin: vocabularies.map((v) => v._id) },
       }).limit(3 - otherVocabs.length);
@@ -309,21 +307,17 @@ router.get("/multiple-choice", async (req, res) => {
       wrongAnswers.push(...otherVocabs.map((v) => v.vietnamese));
       wrongAnswers.push(...additionalVocabs.map((v) => v.vietnamese));
     } else {
-      // Chọn ngẫu nhiên 3 từ từ danh sách
+      // Lấy ngẫu nhiên 3 từ làm đáp án sai
       const shuffled = otherVocabs.sort(() => 0.5 - Math.random());
       wrongAnswers.push(...shuffled.slice(0, 3).map((v) => v.vietnamese));
     }
 
-    // Đảm bảo có đủ 3 đáp án sai
     while (wrongAnswers.length < 3) {
-      wrongAnswers.push("Đáp án tạm thời"); // Fallback nếu không đủ từ
+      wrongAnswers.push("Đáp án tạm thời");
     }
 
-    // Tạo mảng 4 đáp án và xáo trộn
     const allAnswers = [correctVocab.vietnamese, ...wrongAnswers.slice(0, 3)];
     const shuffledAnswers = allAnswers.sort(() => 0.5 - Math.random());
-
-    // Tìm vị trí của đáp án đúng sau khi xáo trộn
     const correctAnswerIndex = shuffledAnswers.indexOf(correctVocab.vietnamese);
 
     res.json({
