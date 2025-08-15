@@ -371,6 +371,64 @@ router.get("/multiple-choice", async (req, res) => {
   }
 });
 
+// Lấy câu hỏi điền từ
+router.get("/fill-blank", async (req, res) => {
+  try {
+    // Lấy tất cả từ vựng chưa nhớ theo thứ tự ưu tiên
+    const allVocabularies = await Vocabulary.find({ memorized: false }).sort({
+      studied: 1, // false trước (chưa học)
+      lastStudied: 1, // null và date cũ trước (học lâu nhất)
+      lastReviewed: 1, // null và date cũ trước (ôn lâu nhất)
+      createdAt: -1, // từ mới tạo trước
+    });
+
+    if (allVocabularies.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "No vocabularies available for quiz" });
+    }
+
+    // Chia thành các nhóm theo độ ưu tiên
+    const unstudiedWords = allVocabularies.filter((v) => !v.studied);
+    const studiedWords = allVocabularies.filter((v) => v.studied);
+
+    let correctVocab;
+
+    // Ưu tiên chọn từ chưa học, random trong top 15 của nhóm đó
+    if (unstudiedWords.length > 0) {
+      const topUnstudied = unstudiedWords.slice(
+        0,
+        Math.min(15, unstudiedWords.length)
+      );
+      const randomIndex = Math.floor(Math.random() * topUnstudied.length);
+      correctVocab = topUnstudied[randomIndex];
+    } else if (studiedWords.length > 0) {
+      // Nếu không có từ chưa học, random trong top 15 từ đã học
+      const topStudied = studiedWords.slice(
+        0,
+        Math.min(15, studiedWords.length)
+      );
+      const randomIndex = Math.floor(Math.random() * topStudied.length);
+      correctVocab = topStudied[randomIndex];
+    } else {
+      correctVocab = allVocabularies[0]; // Fallback
+    }
+
+    res.json({
+      vocabularyId: correctVocab._id,
+      vietnamese: correctVocab.vietnamese,
+      english: correctVocab.english,
+      pronunciation: correctVocab.pronunciation,
+      wordType: correctVocab.wordType,
+      hint:
+        correctVocab.english.charAt(0).toUpperCase() +
+        correctVocab.english.charAt(1), // Gợi ý 2 chữ cái đầu
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Lấy một từ vựng theo ID
 router.get("/:id", async (req, res) => {
   try {

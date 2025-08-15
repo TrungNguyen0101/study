@@ -53,6 +53,9 @@ const vocabularyAPI = {
   // Lấy câu hỏi multiple choice
   getMultipleChoiceQuestion: () => api.get("/vocabulary/multiple-choice"),
 
+  // Lấy câu hỏi điền từ
+  getFillBlankQuestion: () => api.get("/vocabulary/fill-blank"),
+
   // Xóa từ vựng
   deleteVocabulary: (id) => api.delete(`/vocabulary/${id}`),
 };

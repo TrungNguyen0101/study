@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import vocabularyAPI from "../services/api";
 import { speakEnglishWord, debugVoices } from "../utils/speechUtils";
 
-const MultipleChoiceGame = () => {
+const MultipleChoiceGame = ({ onStatsUpdate, onGameComplete }) => {
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -55,21 +55,32 @@ const MultipleChoiceGame = () => {
     const isCorrect = answerIndex === currentQuestion.correctAnswerIndex;
 
     // Cập nhật thống kê
-    setStats((prev) => ({
-      correct: prev.correct + (isCorrect ? 1 : 0),
-      wrong: prev.wrong + (isCorrect ? 0 : 1),
-      total: prev.total + 1,
-    }));
+    const newStats = {
+      correct: stats.correct + (isCorrect ? 1 : 0),
+      wrong: stats.wrong + (isCorrect ? 0 : 1),
+      total: stats.total + 1,
+    };
+    setStats(newStats);
 
     // Cập nhật game session
-    setGameSession((prev) => {
-      const newStreak = isCorrect ? prev.currentStreak + 1 : 0;
-      return {
-        questionsAnswered: prev.questionsAnswered + 1,
-        currentStreak: newStreak,
-        maxStreak: Math.max(prev.maxStreak, newStreak),
-      };
-    });
+    const newSession = {
+      questionsAnswered: gameSession.questionsAnswered + 1,
+      currentStreak: isCorrect ? gameSession.currentStreak + 1 : 0,
+      maxStreak: Math.max(
+        gameSession.maxStreak,
+        isCorrect ? gameSession.currentStreak + 1 : 0
+      ),
+    };
+    setGameSession(newSession);
+
+    // Gọi callback để cập nhật thống kê tổng hợp
+    if (onStatsUpdate) {
+      onStatsUpdate({
+        ...newStats,
+        currentStreak: newSession.currentStreak,
+        maxStreak: newSession.maxStreak,
+      });
+    }
 
     // Phát âm từ tiếng Anh và tự động chuyển câu khi trả lời đúng
     if (isCorrect) {
@@ -79,8 +90,27 @@ const MultipleChoiceGame = () => {
 
       // Tự động chuyển sang câu tiếp theo sau khi phát âm
       setTimeout(() => {
-        loadNewQuestion();
+        console.log("⏰ Timeout triggered for correct answer");
+        if (onGameComplete) {
+          console.log("🎯 Calling onGameComplete callback");
+          onGameComplete(); // Gọi callback để chuyển game
+        } else {
+          console.log("🔄 Fallback: loading new question");
+          loadNewQuestion(); // Fallback về logic cũ
+        }
       }, 2000); // Delay 2 giây để người dùng có thời gian nghe phát âm và xem kết quả
+    } else {
+      // Khi trả lời sai, cũng tự động chuyển game sau 3 giây
+      setTimeout(() => {
+        console.log("⏰ Timeout triggered for wrong answer");
+        if (onGameComplete) {
+          console.log("🎯 Calling onGameComplete callback");
+          onGameComplete(); // Gọi callback để chuyển game
+        } else {
+          console.log("🔄 Fallback: loading new question");
+          loadNewQuestion(); // Fallback về logic cũ
+        }
+      }, 3000); // Delay 3 giây để người dùng có thời gian xem đáp án đúng
     }
 
     // Cập nhật trạng thái review trong database
@@ -328,23 +358,8 @@ const MultipleChoiceGame = () => {
             </div>
           )}
 
-          {/* Chỉ hiển thị nút "Câu tiếp theo" khi trả lời sai */}
-          {selectedAnswer !== currentQuestion.correctAnswerIndex && (
-            <button
-              onClick={handleNextQuestion}
-              className="btn btn-primary"
-              style={{
-                padding: "10px 20px",
-                fontSize: "18px",
-                fontWeight: "bold",
-              }}
-            >
-              ➡️ Câu tiếp theo
-            </button>
-          )}
-
-          {/* Hiển thị thông báo khi trả lời đúng */}
-          {selectedAnswer === currentQuestion.correctAnswerIndex && (
+          {/* Hiển thị thông báo tự động chuyển */}
+          {selectedAnswer === currentQuestion.correctAnswerIndex ? (
             <div
               style={{
                 fontSize: "16px",
@@ -354,6 +369,17 @@ const MultipleChoiceGame = () => {
               }}
             >
               🔊 Đang phát âm... Tự động chuyển câu sau 2 giây
+            </div>
+          ) : (
+            <div
+              style={{
+                fontSize: "16px",
+                color: "#dc3545",
+                fontStyle: "italic",
+                marginTop: "10px",
+              }}
+            >
+              ⏰ Tự động chuyển câu sau 3 giây
             </div>
           )}
         </div>
@@ -405,8 +431,8 @@ const MultipleChoiceGame = () => {
             2 giây
           </li>
           <li>
-            ❌ <strong>Trả lời sai:</strong> Hiển thị đáp án đúng, cần nhấn "Câu
-            tiếp theo"
+            ❌ <strong>Trả lời sai:</strong> Hiển thị đáp án đúng, tự động
+            chuyển câu sau 3 giây
           </li>
           <li>Hệ thống ưu tiên hiển thị từ chưa học và học lâu nhất</li>
           <li>
