@@ -112,19 +112,32 @@ router.get("/review", async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const skip = (page - 1) * limit;
 
-    // Lấy danh sách từ vựng theo độ ưu tiên
-    const vocabularies = await Vocabulary.find({ memorized: false })
-      .sort({
-        studied: 1,
-        lastStudied: 1,
-        lastReviewed: 1,
-        createdAt: -1,
-      })
-      .skip(skip)
-      .limit(limit);
+    // Lấy tất cả từ vựng theo độ ưu tiên
+    const allVocabularies = await Vocabulary.find({ memorized: false }).sort({
+      studied: 1, // false trước (chưa học)
+      lastStudied: 1, // null và date cũ trước (học lâu nhất)
+      lastReviewed: 1, // null và date cũ trước (ôn lâu nhất)
+      createdAt: -1, // từ mới tạo trước
+    });
 
-    // ✅ Xáo trộn danh sách sau khi đã lấy đủ limit
-    const shuffledVocabularies = vocabularies.sort(() => 0.5 - Math.random());
+    // Chia thành nhóm và random trong từng nhóm
+    const unstudiedWords = allVocabularies.filter((v) => !v.studied);
+    const studiedWords = allVocabularies.filter((v) => v.studied);
+
+    // Random trong từng nhóm theo thứ tự ưu tiên
+    let prioritizedVocabularies = [];
+
+    // Thêm từ chưa học (random)
+    const shuffledUnstudied = unstudiedWords.sort(() => 0.5 - Math.random());
+    prioritizedVocabularies.push(...shuffledUnstudied);
+
+    // Thêm từ đã học (random)
+    const shuffledStudied = studiedWords.sort(() => 0.5 - Math.random());
+    prioritizedVocabularies.push(...shuffledStudied);
+
+    // Apply pagination sau khi đã random đúng cách
+    const vocabularies = prioritizedVocabularies.slice(skip, skip + limit);
+    const shuffledVocabularies = vocabularies;
 
     const total = await Vocabulary.countDocuments({ memorized: false });
     const totalPages = Math.ceil(total / limit);
@@ -273,28 +286,53 @@ router.put("/:id", async (req, res) => {
 // Lấy câu hỏi multiple choice
 router.get("/multiple-choice", async (req, res) => {
   try {
-    // Lấy 50 từ vựng chưa nhớ, ưu tiên học/ôn/review
-    const vocabularies = await Vocabulary.find({ memorized: false })
-      .sort({
-        studied: 1,
-        lastStudied: 1,
-        lastReviewed: 1,
-        createdAt: -1,
-      })
-      .limit(50);
+    // Lấy tất cả từ vựng chưa nhớ theo thứ tự ưu tiên
+    const allVocabularies = await Vocabulary.find({ memorized: false }).sort({
+      studied: 1, // false trước (chưa học)
+      lastStudied: 1, // null và date cũ trước (học lâu nhất)
+      lastReviewed: 1, // null và date cũ trước (ôn lâu nhất)
+      createdAt: -1, // từ mới tạo trước
+    });
 
-    if (vocabularies.length === 0) {
+    if (allVocabularies.length === 0) {
       return res
         .status(404)
         .json({ error: "No vocabularies available for quiz" });
     }
 
-    // ✅ Chọn ngẫu nhiên 1 từ trong danh sách 50 từ
-    const randomIndex = Math.floor(Math.random() * vocabularies.length);
-    const correctVocab = vocabularies[randomIndex];
+    // Chia thành các nhóm theo độ ưu tiên
+    const unstudiedWords = allVocabularies.filter((v) => !v.studied);
+    const studiedWords = allVocabularies.filter((v) => v.studied);
+
+    let correctVocab;
+
+    // Ưu tiên chọn từ chưa học, random trong top 10 của nhóm đó
+    if (unstudiedWords.length > 0) {
+      const topUnstudied = unstudiedWords.slice(
+        0,
+        Math.min(15, unstudiedWords.length)
+      );
+      const randomIndex = Math.floor(Math.random() * topUnstudied.length);
+      correctVocab = topUnstudied[randomIndex];
+    } else if (studiedWords.length > 0) {
+      // Nếu không có từ chưa học, random trong top 10 từ đã học
+      const topStudied = studiedWords.slice(
+        0,
+        Math.min(15, studiedWords.length)
+      );
+      const randomIndex = Math.floor(Math.random() * topStudied.length);
+      correctVocab = topStudied[randomIndex];
+    } else {
+      correctVocab = allVocabularies[0]; // Fallback
+    }
+
+    // Lấy 50 từ đầu để tạo đáp án sai
+    const vocabularies = allVocabularies.slice(0, 50);
 
     // Lấy các từ khác (không trùng từ đúng)
-    const otherVocabs = vocabularies.filter((v, idx) => idx !== randomIndex);
+    const otherVocabs = vocabularies.filter(
+      (v) => v._id.toString() !== correctVocab._id.toString()
+    );
 
     const wrongAnswers = [];
 
