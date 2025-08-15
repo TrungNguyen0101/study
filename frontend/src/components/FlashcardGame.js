@@ -494,7 +494,8 @@ const FlashcardGame = () => {
             ôn tập
           </li>
           <li>
-            Hệ thống ưu tiên hiển thị: <em>Chưa học → Chưa ôn → Ôn lâu nhất</em>
+            Hệ thống ưu tiên hiển thị:{" "}
+            <em>Chưa học → Học lâu nhất → Chưa ôn → Ôn lâu nhất</em>
           </li>
         </ul>
       </div>

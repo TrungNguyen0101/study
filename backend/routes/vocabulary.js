@@ -105,18 +105,24 @@ router.get("/all", async (req, res) => {
   }
 });
 
-// Lấy từ vựng để ôn tập (ưu tiên chưa được ôn hoặc ôn lâu nhất, loại trừ từ đã nhớ)
+// Lấy từ vựng để ôn tập (ưu tiên theo thời gian học và ôn tập, loại trừ từ đã nhớ)
 router.get("/review", async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 8; // Mặc định lấy 8 từ cho game 4x4
     const page = parseInt(req.query.page) || 1;
     const skip = (page - 1) * limit;
 
-    // Lấy từ vựng chưa memorized theo độ ưu tiên: chưa studied -> chưa ôn -> ôn lâu nhất
+    // Lấy từ vựng chưa memorized theo độ ưu tiên:
+    // 1. Chưa studied (studied = false)
+    // 2. Studied lâu nhất (lastStudied cũ nhất)
+    // 3. Chưa ôn (lastReviewed = null)
+    // 4. Ôn lâu nhất (lastReviewed cũ nhất)
+    // 5. Từ mới tạo trước
     const vocabularies = await Vocabulary.find({ memorized: false })
       .sort({
         studied: 1, // false sẽ đứng đầu (chưa học)
-        lastReviewed: 1, // null sẽ đứng đầu (chưa ôn)
+        lastStudied: 1, // null và date cũ sẽ đứng đầu (học lâu nhất)
+        lastReviewed: 1, // null và date cũ sẽ đứng đầu (ôn lâu nhất)
         createdAt: -1, // từ mới tạo trước
       })
       .skip(skip)
@@ -195,9 +201,17 @@ router.put("/studied/:id", async (req, res) => {
   try {
     const { studied } = req.body;
 
+    // Nếu đánh dấu là đã học, cập nhật thời gian
+    const updateData = { studied: studied };
+    if (studied) {
+      updateData.lastStudied = new Date();
+    } else {
+      updateData.lastStudied = null;
+    }
+
     const vocabulary = await Vocabulary.findByIdAndUpdate(
       req.params.id,
-      { studied: studied },
+      updateData,
       { new: true }
     );
 
