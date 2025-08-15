@@ -34,10 +34,8 @@ const MultipleChoiceGame = () => {
       setSelectedAnswer(null);
       setShowResult(false);
       const response = await vocabularyAPI.getMultipleChoiceQuestion();
-      console.log("🚀 ~ MultipleChoiceGame ~ response:", response);
       setCurrentQuestion(response.data);
     } catch (error) {
-      console.log("🚀 ~ MultipleChoiceGame ~ error:", error);
       console.error("Error loading question:", error);
       // Fallback: hiển thị thông báo không có câu hỏi
       setCurrentQuestion(null);
@@ -213,7 +211,7 @@ const MultipleChoiceGame = () => {
         style={{
           display: "flex",
           justifyContent: "center",
-          marginBottom: "30px",
+          marginBottom: "15px",
         }}
       >
         <div
@@ -306,11 +304,11 @@ const MultipleChoiceGame = () => {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-          gap: "15px",
-          marginBottom: "30px",
+          gridTemplateColumns: "repeat(2, 1fr)",
+          gap: "5px",
+          marginBottom: "15px",
           maxWidth: "800px",
-          margin: "0 auto 30px",
+          margin: "0 auto 15px",
         }}
       >
         {currentQuestion.answers.map((answer, index) => (
@@ -320,7 +318,7 @@ const MultipleChoiceGame = () => {
             onClick={() => handleAnswerSelect(index)}
             disabled={showResult}
             style={{
-              padding: "20px",
+              padding: "10px",
               fontSize: "18px",
               borderRadius: "10px",
               minHeight: "80px",
@@ -339,7 +337,7 @@ const MultipleChoiceGame = () => {
 
       {/* Kết quả và điều khiển */}
       {showResult && (
-        <div style={{ textAlign: "center", marginBottom: "30px" }}>
+        <div style={{ textAlign: "center", marginBottom: "15px" }}>
           <div
             style={{
               fontSize: "24px",
@@ -373,7 +371,7 @@ const MultipleChoiceGame = () => {
               onClick={handleNextQuestion}
               className="btn btn-primary"
               style={{
-                padding: "15px 30px",
+                padding: "10px 20px",
                 fontSize: "18px",
                 fontWeight: "bold",
               }}

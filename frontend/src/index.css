@@ -27,7 +27,7 @@ body {
 
 @media (max-width: 480px) {
   .container {
-    padding: 10px;
+    padding: 5px;
   }
 }
 
@@ -213,7 +213,8 @@ body {
 
 @media (max-width: 480px) {
   .game-grid {
-    gap: 8px;
+    gap: 4px;
+    padding: 5px;
     grid-template-columns: repeat(4, 1fr) !important;
   }
 }
@@ -257,7 +258,7 @@ body {
 @media (max-width: 480px) {
   .card {
     font-size: 12px;
-    padding: 6px;
+    padding: 1px;
     min-height: 70px;
     border-radius: 6px;
     line-height: 1.2;

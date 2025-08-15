@@ -239,7 +239,7 @@ const FlashcardGame = () => {
               <div
                 style={{
                   position: "absolute",
-                  top: "10px",
+                  top: "5px",
                   right: "10px",
                   display: "flex",
                   gap: "5px",
@@ -249,15 +249,14 @@ const FlashcardGame = () => {
                   <span
                     style={{
                       fontSize: "14px",
-                      background: "#17a2b8",
+                      background: "red",
                       color: "white",
-                      padding: "2px 8px",
-                      borderRadius: "12px",
+                      borderRadius: "100%",
+                      width: "20px",
+                      height: "20px",
                     }}
                     title="Đã học"
-                  >
-                    📖
-                  </span>
+                  ></span>
                 )}
                 {currentVocab.memorized && (
                   <span
