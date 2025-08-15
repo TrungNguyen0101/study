@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { vocabularyAPI } from "../services/api";
+import vocabularyAPI from "../services/api";
 
 const wordTypes = [
   { value: "noun", label: "Danh từ (Noun)" },

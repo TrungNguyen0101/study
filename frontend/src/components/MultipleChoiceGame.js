@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { vocabularyAPI } from "../services/api";
+import React, { useState, useEffect } from "react";
+import vocabularyAPI from "../services/api";
 
 const MultipleChoiceGame = () => {
   const [currentQuestion, setCurrentQuestion] = useState(null);

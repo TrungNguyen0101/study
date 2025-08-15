@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { vocabularyAPI } from "../services/api";
+import vocabularyAPI from "../services/api";
 
 const ReviewGame = () => {
   const [vocabularies, setVocabularies] = useState([]);

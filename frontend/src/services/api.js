@@ -10,7 +10,8 @@ const api = axios.create({
   },
 });
 
-export const vocabularyAPI = {
+// Tạo vocabularyAPI object riêng với tất cả methods
+const vocabularyAPI = {
   // Thêm từ vựng mới
   addVocabulary: (data) => api.post("/vocabulary/add", data),
 
@@ -49,8 +50,13 @@ export const vocabularyAPI = {
   // Cập nhật trạng thái ôn tập
   updateReview: (id) => api.put(`/vocabulary/review/${id}`),
 
+  // Lấy câu hỏi multiple choice
+  getMultipleChoiceQuestion: () => api.get("/vocabulary/multiple-choice"),
+
   // Xóa từ vựng
   deleteVocabulary: (id) => api.delete(`/vocabulary/${id}`),
 };
 
-export default api;
+// Export cả named và default để đảm bảo tương thích
+export { vocabularyAPI };
+export default vocabularyAPI;
