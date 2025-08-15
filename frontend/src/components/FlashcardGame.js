@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import vocabularyAPI from "../services/api";
+import { speakEnglishWord } from "../utils/speechUtils";
 
 const FlashcardGame = () => {
   const [vocabularies, setVocabularies] = useState([]);
@@ -56,42 +57,7 @@ const FlashcardGame = () => {
 
   // Phát âm từ
   const speakWord = (text) => {
-    if ("speechSynthesis" in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "en-US";
-      utterance.rate = 0.8;
-      
-      // Lấy danh sách tất cả voices có sẵn
-      const voices = speechSynthesis.getVoices();
-      
-      // Tìm giọng nam tiếng Anh (ưu tiên giọng nam)
-      const maleVoice = voices.find(voice => 
-        voice.lang.startsWith('en') && 
-        (voice.name.toLowerCase().includes('male') || 
-         voice.name.toLowerCase().includes('david') ||
-         voice.name.toLowerCase().includes('alex') ||
-         voice.name.toLowerCase().includes('daniel') ||
-         voice.name.toLowerCase().includes('mark') ||
-         !voice.name.toLowerCase().includes('female') &&
-         !voice.name.toLowerCase().includes('samantha') &&
-         !voice.name.toLowerCase().includes('susan') &&
-         !voice.name.toLowerCase().includes('karen') &&
-         !voice.name.toLowerCase().includes('emily'))
-      );
-      
-      // Nếu tìm thấy giọng nam, sử dụng nó
-      if (maleVoice) {
-        utterance.voice = maleVoice;
-      } else {
-        // Fallback: tìm bất kỳ giọng tiếng Anh nào
-        const englishVoice = voices.find(voice => voice.lang.startsWith('en'));
-        if (englishVoice) {
-          utterance.voice = englishVoice;
-        }
-      }
-      
-      speechSynthesis.speak(utterance);
-    }
+    speakEnglishWord(text).catch(console.error);
   };
 
   // Đánh dấu từ đã nhớ
