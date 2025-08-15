@@ -273,6 +273,72 @@ router.put("/:id", async (req, res) => {
   }
 });
 
+// Lấy câu hỏi multiple choice
+router.get("/multiple-choice", async (req, res) => {
+  try {
+    // Lấy từ vựng để làm câu hỏi theo độ ưu tiên giống như review
+    const vocabularies = await Vocabulary.find({ memorized: false })
+      .sort({
+        studied: 1, // false sẽ đứng đầu (chưa học)
+        lastStudied: 1, // null và date cũ sẽ đứng đầu (học lâu nhất)
+        lastReviewed: 1, // null và date cũ sẽ đứng đầu (ôn lâu nhất)
+        createdAt: -1, // từ mới tạo trước
+      })
+      .limit(50); // Lấy 50 từ để có nhiều lựa chọn
+
+    if (vocabularies.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "No vocabularies available for quiz" });
+    }
+
+    // Chọn từ đầu tiên làm câu hỏi (từ có độ ưu tiên cao nhất)
+    const correctVocab = vocabularies[0];
+
+    // Tạo 3 đáp án sai ngẫu nhiên từ các từ khác
+    const otherVocabs = vocabularies.slice(1);
+    const wrongAnswers = [];
+
+    // Nếu có ít hơn 3 từ khác, lấy tất cả
+    if (otherVocabs.length < 3) {
+      // Lấy thêm từ từ tất cả từ vựng (kể cả đã memorized) để đủ đáp án
+      const additionalVocabs = await Vocabulary.find({
+        _id: { $nin: vocabularies.map((v) => v._id) },
+      }).limit(3 - otherVocabs.length);
+
+      wrongAnswers.push(...otherVocabs.map((v) => v.vietnamese));
+      wrongAnswers.push(...additionalVocabs.map((v) => v.vietnamese));
+    } else {
+      // Chọn ngẫu nhiên 3 từ từ danh sách
+      const shuffled = otherVocabs.sort(() => 0.5 - Math.random());
+      wrongAnswers.push(...shuffled.slice(0, 3).map((v) => v.vietnamese));
+    }
+
+    // Đảm bảo có đủ 3 đáp án sai
+    while (wrongAnswers.length < 3) {
+      wrongAnswers.push("Đáp án tạm thời"); // Fallback nếu không đủ từ
+    }
+
+    // Tạo mảng 4 đáp án và xáo trộn
+    const allAnswers = [correctVocab.vietnamese, ...wrongAnswers.slice(0, 3)];
+    const shuffledAnswers = allAnswers.sort(() => 0.5 - Math.random());
+
+    // Tìm vị trí của đáp án đúng sau khi xáo trộn
+    const correctAnswerIndex = shuffledAnswers.indexOf(correctVocab.vietnamese);
+
+    res.json({
+      vocabularyId: correctVocab._id,
+      english: correctVocab.english,
+      pronunciation: correctVocab.pronunciation,
+      wordType: correctVocab.wordType,
+      answers: shuffledAnswers,
+      correctAnswerIndex: correctAnswerIndex,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Lấy một từ vựng theo ID
 router.get("/:id", async (req, res) => {
   try {

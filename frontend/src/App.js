@@ -3,6 +3,7 @@ import AddVocabulary from "./components/AddVocabulary";
 import ReviewGame from "./components/ReviewGame";
 import VocabularyList from "./components/VocabularyList";
 import FlashcardGame from "./components/FlashcardGame";
+import MultipleChoiceGame from "./components/MultipleChoiceGame";
 
 function App() {
   const [currentPage, setCurrentPage] = useState(() => {
@@ -48,6 +49,12 @@ function App() {
           >
             🎮 Review
           </button>
+          <button
+            className={`nav-button ${currentPage === "quiz" ? "active" : ""}`}
+            onClick={() => setCurrentPage("quiz")}
+          >
+            🧠 Quiz
+          </button>
         </div>
       </nav>
 
@@ -55,6 +62,7 @@ function App() {
       {currentPage === "list" && <VocabularyList />}
       {currentPage === "flashcard" && <FlashcardGame />}
       {currentPage === "review" && <ReviewGame />}
+      {currentPage === "quiz" && <MultipleChoiceGame />}
     </div>
   );
 }
