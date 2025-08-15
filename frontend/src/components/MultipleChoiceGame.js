@@ -35,8 +35,10 @@ const MultipleChoiceGame = () => {
 
     try {
       const response = await vocabularyAPI.getMultipleChoiceQuestion();
+      console.log("🚀 ~ MultipleChoiceGame ~ response:", response);
       setCurrentQuestion(response.data);
     } catch (error) {
+      console.log("🚀 ~ MultipleChoiceGame ~ error:", error);
       console.error("Error loading question:", error);
       // Fallback: hiển thị thông báo không có câu hỏi
       setCurrentQuestion(null);
