@@ -55,35 +55,14 @@ const FlashcardGame = () => {
   };
 
   // Phát âm từ
-const speakWord = (text) => {
-  if (!("speechSynthesis" in window)) return;
-
-  // Chờ danh sách voice load xong
-  const loadVoices = () => {
-    const voices = speechSynthesis.getVoices();
-    if (!voices.length) {
-      setTimeout(loadVoices, 100);
-      return;
+  const speakWord = (text) => {
+    if ("speechSynthesis" in window) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "en-US";
+      utterance.rate = 0.8;
+      speechSynthesis.speak(utterance);
     }
-
-    // Tìm voice mong muốn (ví dụ giọng nam US)
-    const targetVoice = voices.find(
-      (v) => v.lang === "en-US" && v.name.toLowerCase().includes("male") // Có thể thay 'male' thành tên cụ thể
-    );
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "en-US";
-    utterance.rate = 0.8;
-
-    if (targetVoice) {
-      utterance.voice = targetVoice;
-    }
-
-    speechSynthesis.speak(utterance);
   };
-
-  loadVoices();
-};
 
   // Đánh dấu từ đã nhớ
   const markAsMemorized = async () => {
