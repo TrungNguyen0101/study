@@ -36,34 +36,31 @@ const VocabularyList = () => {
   const [isUpdating, setIsUpdating] = useState(false);
 
   // Tải danh sách từ vựng
-  const loadVocabularies = useCallback(
-    async (page = 1) => {
-      setIsLoading(true);
-      try {
-        const params = {
-          page,
-          limit: 10,
-          ...(searchTerm && { search: searchTerm }),
-          ...(selectedWordType !== "all" && { wordType: selectedWordType }),
-          ...(selectedMemorized !== "all" && { memorized: selectedMemorized }),
-        };
+  const loadVocabularies = async (page = 1) => {
+    setIsLoading(true);
+    try {
+      const params = {
+        page,
+        limit: 9,
+        ...(searchTerm && { search: searchTerm }),
+        ...(selectedWordType !== "all" && { wordType: selectedWordType }),
+        ...(selectedMemorized !== "all" && { memorized: selectedMemorized }),
+      };
 
-        const response = await vocabularyAPI.getAllVocabularies(params);
-        setVocabularies(response.data.vocabularies);
-        setPagination(response.data.pagination);
-      } catch (error) {
-        console.error("Error loading vocabularies:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [searchTerm, selectedWordType, selectedMemorized]
-  );
+      const response = await vocabularyAPI.getAllVocabularies(params);
+      setVocabularies(response.data.vocabularies);
+      setPagination(response.data.pagination);
+    } catch (error) {
+      console.error("Error loading vocabularies:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Load ban đầu và khi filter thay đổi
   useEffect(() => {
     loadVocabularies(1);
-  }, [loadVocabularies]);
+  }, []);
 
   // Handle search với debounce
   useEffect(() => {

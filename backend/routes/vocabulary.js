@@ -3,6 +3,7 @@ const router = express.Router();
 const Vocabulary = require("../models/Vocabulary");
 const PronunciationService = require("../services/pronunciationService");
 const TranslationService = require("../services/translationService");
+const auth = require("../middleware/auth");
 
 // Lấy thông tin từ vựng tự động (phiên âm và loại từ)
 router.get("/word-info/:word", async (req, res) => {
@@ -27,7 +28,7 @@ router.get("/translate/:word", async (req, res) => {
 });
 
 // Thêm từ vựng mới
-router.post("/add", async (req, res) => {
+router.post("/add", auth, async (req, res) => {
   try {
     const { english, vietnamese, wordType, pronunciation } = req.body;
 
@@ -44,6 +45,7 @@ router.post("/add", async (req, res) => {
     }
 
     const vocabulary = new Vocabulary({
+      user: req.user._id,
       english: english.toLowerCase().trim(),
       vietnamese: vietnamese.trim(),
       wordType: wordType || "other",
@@ -60,10 +62,10 @@ router.post("/add", async (req, res) => {
 });
 
 // Lấy tất cả từ vựng với tìm kiếm
-router.get("/all", async (req, res) => {
+router.get("/all", auth, async (req, res) => {
   try {
     const { search, wordType, memorized, page = 1, limit = 20 } = req.query;
-    let query = {};
+    let query = { user: req.user._id };
 
     // Tìm kiếm theo từ tiếng Anh hoặc nghĩa tiếng Việt
     if (search) {
@@ -106,14 +108,17 @@ router.get("/all", async (req, res) => {
 });
 
 // Lấy từ vựng để ôn tập (ưu tiên theo thời gian học và ôn tập, loại trừ từ đã nhớ)
-router.get("/review", async (req, res) => {
+router.get("/review", auth, async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 8;
     const page = parseInt(req.query.page) || 1;
     const skip = (page - 1) * limit;
 
     // Lấy tất cả từ vựng theo độ ưu tiên
-    const allVocabularies = await Vocabulary.find({ memorized: false }).sort({
+    const allVocabularies = await Vocabulary.find({
+      user: req.user._id,
+      memorized: false,
+    }).sort({
       studied: 1, // false trước (chưa học)
       lastStudied: 1, // null và date cũ trước (học lâu nhất)
       lastReviewed: 1, // null và date cũ trước (ôn lâu nhất)
@@ -139,7 +144,10 @@ router.get("/review", async (req, res) => {
     const vocabularies = prioritizedVocabularies.slice(skip, skip + limit);
     const shuffledVocabularies = vocabularies;
 
-    const total = await Vocabulary.countDocuments({ memorized: false });
+    const total = await Vocabulary.countDocuments({
+      user: req.user._id,
+      memorized: false,
+    });
     const totalPages = Math.ceil(total / limit);
 
     res.json({
@@ -159,10 +167,10 @@ router.get("/review", async (req, res) => {
 });
 
 // Cập nhật trạng thái ôn tập
-router.put("/review/:id", async (req, res) => {
+router.put("/review/:id", auth, async (req, res) => {
   try {
-    const vocabulary = await Vocabulary.findByIdAndUpdate(
-      req.params.id,
+    const vocabulary = await Vocabulary.findOneAndUpdate(
+      { _id: req.params.id, user: req.user._id },
       {
         lastReviewed: new Date(),
         $inc: { reviewCount: 1 },
@@ -181,12 +189,12 @@ router.put("/review/:id", async (req, res) => {
 });
 
 // Cập nhật trạng thái memorized
-router.put("/memorized/:id", async (req, res) => {
+router.put("/memorized/:id", auth, async (req, res) => {
   try {
     const { memorized } = req.body;
 
-    const vocabulary = await Vocabulary.findByIdAndUpdate(
-      req.params.id,
+    const vocabulary = await Vocabulary.findOneAndUpdate(
+      { _id: req.params.id, user: req.user._id },
       { memorized: memorized },
       { new: true }
     );
@@ -207,7 +215,7 @@ router.put("/memorized/:id", async (req, res) => {
 });
 
 // Cập nhật trạng thái studied
-router.put("/studied/:id", async (req, res) => {
+router.put("/studied/:id", auth, async (req, res) => {
   try {
     const { studied } = req.body;
 
@@ -219,8 +227,8 @@ router.put("/studied/:id", async (req, res) => {
       updateData.lastStudied = null;
     }
 
-    const vocabulary = await Vocabulary.findByIdAndUpdate(
-      req.params.id,
+    const vocabulary = await Vocabulary.findOneAndUpdate(
+      { _id: req.params.id, user: req.user._id },
       updateData,
       { new: true }
     );
@@ -239,7 +247,7 @@ router.put("/studied/:id", async (req, res) => {
 });
 
 // Cập nhật từ vựng
-router.put("/:id", async (req, res) => {
+router.put("/:id", auth, async (req, res) => {
   try {
     const { english, vietnamese, wordType, pronunciation, memorized } =
       req.body;
@@ -252,7 +260,10 @@ router.put("/:id", async (req, res) => {
 
     // Tự động tạo phiên âm nếu từ tiếng Anh thay đổi và không có phiên âm mới
     let finalPronunciation = pronunciation;
-    const existingVocab = await Vocabulary.findById(req.params.id);
+    const existingVocab = await Vocabulary.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    });
 
     if (
       !finalPronunciation ||
@@ -261,8 +272,8 @@ router.put("/:id", async (req, res) => {
       finalPronunciation = await PronunciationService.getPronunciation(english);
     }
 
-    const vocabulary = await Vocabulary.findByIdAndUpdate(
-      req.params.id,
+    const vocabulary = await Vocabulary.findOneAndUpdate(
+      { _id: req.params.id, user: req.user._id },
       {
         english: english.toLowerCase().trim(),
         vietnamese: vietnamese.trim(),
@@ -284,10 +295,13 @@ router.put("/:id", async (req, res) => {
 });
 
 // Lấy câu hỏi multiple choice
-router.get("/multiple-choice", async (req, res) => {
+router.get("/multiple-choice", auth, async (req, res) => {
   try {
     // Lấy tất cả từ vựng chưa nhớ theo thứ tự ưu tiên
-    const allVocabularies = await Vocabulary.find({ memorized: false }).sort({
+    const allVocabularies = await Vocabulary.find({
+      user: req.user._id,
+      memorized: false,
+    }).sort({
       studied: 1, // false trước (chưa học)
       lastStudied: 1, // null và date cũ trước (học lâu nhất)
       lastReviewed: 1, // null và date cũ trước (ôn lâu nhất)
@@ -339,6 +353,7 @@ router.get("/multiple-choice", async (req, res) => {
     if (otherVocabs.length < 3) {
       // Nếu chưa đủ 3 đáp án sai, lấy thêm từ khác (kể cả đã memorized)
       const additionalVocabs = await Vocabulary.find({
+        user: req.user._id,
         _id: { $nin: vocabularies.map((v) => v._id) },
       }).limit(3 - otherVocabs.length);
 
@@ -372,10 +387,13 @@ router.get("/multiple-choice", async (req, res) => {
 });
 
 // Lấy câu hỏi điền từ
-router.get("/fill-blank", async (req, res) => {
+router.get("/fill-blank", auth, async (req, res) => {
   try {
     // Lấy tất cả từ vựng chưa nhớ theo thứ tự ưu tiên
-    const allVocabularies = await Vocabulary.find({ memorized: false }).sort({
+    const allVocabularies = await Vocabulary.find({
+      user: req.user._id,
+      memorized: false,
+    }).sort({
       studied: 1, // false trước (chưa học)
       lastStudied: 1, // null và date cũ trước (học lâu nhất)
       lastReviewed: 1, // null và date cũ trước (ôn lâu nhất)
@@ -430,9 +448,12 @@ router.get("/fill-blank", async (req, res) => {
 });
 
 // Lấy một từ vựng theo ID
-router.get("/:id", async (req, res) => {
+router.get("/:id", auth, async (req, res) => {
   try {
-    const vocabulary = await Vocabulary.findById(req.params.id);
+    const vocabulary = await Vocabulary.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    });
     if (!vocabulary) {
       return res.status(404).json({ error: "Vocabulary not found" });
     }
@@ -443,15 +464,59 @@ router.get("/:id", async (req, res) => {
 });
 
 // Xóa từ vựng
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", auth, async (req, res) => {
   try {
-    const vocabulary = await Vocabulary.findByIdAndDelete(req.params.id);
+    const vocabulary = await Vocabulary.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user._id,
+    });
     if (!vocabulary) {
       return res.status(404).json({ error: "Vocabulary not found" });
     }
     res.json({ message: "Vocabulary deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// API migration - Cập nhật tất cả vocabulary cũ cho user hiện tại
+router.post("/migrate-to-user", auth, async (req, res) => {
+  try {
+    // Tìm tất cả vocabulary không có user hoặc user = null
+    const orphanVocabularies = await Vocabulary.find({
+      $or: [{ user: { $exists: false } }, { user: null }],
+    });
+
+    if (orphanVocabularies.length === 0) {
+      return res.json({
+        success: true,
+        message: "Không có vocabulary nào cần migration",
+        migrated: 0,
+      });
+    }
+
+    // Cập nhật tất cả vocabulary này cho user hiện tại
+    const result = await Vocabulary.updateMany(
+      {
+        $or: [{ user: { $exists: false } }, { user: null }],
+      },
+      {
+        $set: { user: req.user._id },
+      }
+    );
+
+    res.json({
+      success: true,
+      message: `Đã migration thành công ${result.modifiedCount} vocabulary cho user ${req.user.username}`,
+      migrated: result.modifiedCount,
+      found: orphanVocabularies.length,
+    });
+  } catch (error) {
+    console.error("Migration error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Lỗi khi migration vocabulary: " + error.message,
+    });
   }
 });
 

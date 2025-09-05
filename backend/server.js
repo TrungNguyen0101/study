@@ -1,7 +1,9 @@
 const express = require("express");
 const cors = require("cors");
+require("dotenv").config();
 const connectDB = require("./config/database");
 const vocabularyRoutes = require("./routes/vocabulary");
+const authRoutes = require("./routes/auth");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -19,6 +21,7 @@ app.use(
 app.use(express.json());
 
 // Routes
+app.use("/api/auth", authRoutes);
 app.use("/api/vocabulary", vocabularyRoutes);
 
 // Health check route

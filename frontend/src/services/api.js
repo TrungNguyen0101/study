@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// const API_BASE_URL = "http://localhost:5000/api";
-const API_BASE_URL = "https://nguyenpt1.vercel.app/api";
+const API_BASE_URL = "http://localhost:5000/api";
+// const API_BASE_URL = "https://nguyenpt1.vercel.app/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -9,6 +9,34 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+// Request interceptor để tự động thêm token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor để xử lý lỗi auth
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token không hợp lệ hoặc hết hạn
+      localStorage.removeItem("token");
+      // Redirect về login page
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Tạo vocabularyAPI object riêng với tất cả methods
 const vocabularyAPI = {
@@ -58,8 +86,11 @@ const vocabularyAPI = {
 
   // Xóa từ vựng
   deleteVocabulary: (id) => api.delete(`/vocabulary/${id}`),
+
+  // Migration API - Cập nhật vocabulary cũ cho user hiện tại
+  migrateVocabulariesToUser: () => api.post("/vocabulary/migrate-to-user"),
 };
 
 // Export cả named và default để đảm bảo tương thích
-export { vocabularyAPI };
+export { vocabularyAPI, api };
 export default vocabularyAPI;

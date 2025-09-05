@@ -26,7 +26,7 @@ const AddVocabulary = () => {
   const [isLoadingWordInfo, setIsLoadingWordInfo] = useState(false);
 
   // Lấy tất cả thông tin tự động (nghĩa, loại từ, phiên âm)
-  const fetchAllInfo = useCallback(async () => {
+  const fetchAllInfo = async () => {
     if (!formData.english.trim() || formData.english.length < 2) {
       setMessage("Vui lòng nhập từ tiếng Anh trước");
       setMessageType("error");
@@ -43,15 +43,10 @@ const AddVocabulary = () => {
       const wordInfoResponse = await vocabularyAPI.getWordInfo(
         formData.english.trim()
       );
-      console.log("🚀 ~ AddVocabulary ~ wordInfoResponse:", wordInfoResponse);
 
       // Lấy bản dịch tiếng Việt
       const translationResponse = await vocabularyAPI.getTranslation(
         formData.english.trim()
-      );
-      console.log(
-        "🚀 ~ AddVocabulary ~ translationResponse:",
-        translationResponse
       );
 
       const { pronunciation, wordType } = wordInfoResponse.data;
@@ -99,7 +94,7 @@ const AddVocabulary = () => {
     } finally {
       setIsLoadingWordInfo(false);
     }
-  }, [formData.english]);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
