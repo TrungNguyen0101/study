@@ -55,6 +55,7 @@ const ReviewGame = () => {
         pairId: vocab._id,
         vocabData: vocab,
         wordType: vocab.wordType,
+        pairIndex: index + 1,
       });
 
       cards.push({
@@ -63,6 +64,7 @@ const ReviewGame = () => {
         type: "vietnamese",
         pairId: vocab._id,
         vocabData: vocab,
+        pairIndex: index + 1,
       });
     });
 
@@ -403,10 +405,23 @@ const ReviewGame = () => {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
+                position: "relative",
                 opacity: isMatched ? 0.35 : 1,
                 filter: isMatched ? "grayscale(0.6)" : "none",
-                transition: "opacity 200ms ease, filter 200ms ease",
+                transition:
+                  "opacity 200ms ease, filter 200ms ease, box-shadow 200ms ease, border-color 200ms ease",
                 pointerEvents: isMatched ? "none" : "auto",
+                // Highlight matched pair with consistent color
+                ...(isMatched
+                  ? (() => {
+                      const hue = ((card.pairIndex || 1) * 57) % 360;
+                      const color = `hsl(${hue}, 70%, 45%)`;
+                      return {
+                        border: `2px solid ${color}`,
+                        boxShadow: `0 0 0 3px rgba(0,0,0,0.03), 0 0 8px ${color}33`,
+                      };
+                    })()
+                  : {}),
               }}
             >
               {card.text}
@@ -420,6 +435,28 @@ const ReviewGame = () => {
               >
                 {card.wordType}
               </i>
+              {isMatched && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 6,
+                    left: 6,
+                    padding: "2px 6px",
+                    borderRadius: 10,
+                    fontSize: 10,
+                    fontWeight: "bold",
+                    color: "white",
+                    backgroundColor: (() => {
+                      const hue = ((card.pairIndex || 1) * 57) % 360;
+                      return `hsl(${hue}, 70%, 45%)`;
+                    })(),
+                    opacity: 0.9,
+                  }}
+                  title={`Cặp #${card.pairIndex}`}
+                >
+                  #{card.pairIndex}
+                </div>
+              )}
             </div>
           );
         })}
