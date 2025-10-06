@@ -4,6 +4,7 @@ import vocabularyAPI from "../services/api";
 const ReviewGame = () => {
   const [vocabularies, setVocabularies] = useState([]);
   const [gameCards, setGameCards] = useState([]);
+  console.log("🚀 ~ ReviewGame ~ gameCards:", gameCards);
   const [selectedCards, setSelectedCards] = useState([]);
   const [matchedPairs, setMatchedPairs] = useState(new Set());
   const [isLoading, setIsLoading] = useState(true);
@@ -425,6 +426,12 @@ const ReviewGame = () => {
               }}
             >
               {card.text}
+              <br />
+              {card.type === "english" && (
+                <p style={{ fontSize: "12px", color: "#666" }}>
+                  {card.vocabData.pronunciation}
+                </p>
+              )}
               <br />
               <i
                 style={{
