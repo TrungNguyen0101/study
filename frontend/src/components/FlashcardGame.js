@@ -116,31 +116,24 @@ const FlashcardGame = () => {
   };
 
   // Next card
-  const nextCard = () => {
+  const nextCard = useCallback(() => {
     setStudiedCount((prev) => prev + 1);
-
-    if (currentIndex < vocabularies.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-    } else {
-      setCurrentIndex(0);
-    }
+    setCurrentIndex((prev) => (prev < vocabularies.length - 1 ? prev + 1 : 0));
     setShowAnswer(false);
-  };
+  }, [vocabularies.length]);
 
   // Previous card
-  const prevCard = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1);
-    } else {
-      setCurrentIndex(vocabularies.length - 1);
-    }
+  const prevCard = useCallback(() => {
+    setCurrentIndex((prev) =>
+      prev > 0 ? prev - 1 : Math.max(vocabularies.length - 1, 0)
+    );
     setShowAnswer(false);
-  };
+  }, [vocabularies.length]);
 
   // Toggle answer
-  const toggleAnswer = () => {
+  const toggleAnswer = useCallback(() => {
     setShowAnswer((prev) => !prev);
-  };
+  }, []);
 
   // Reset input and status whenever switching card or side
   useEffect(() => {
@@ -159,6 +152,33 @@ const FlashcardGame = () => {
     const isCorrect = normalize(answerInput) === normalize(correct);
     setAnswerStatus(isCorrect ? "correct" : "incorrect");
   };
+
+  // Keyboard shortcuts: 1 -> prev, 2 -> next (ignored while typing)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const activeTag =
+        document.activeElement && document.activeElement.tagName;
+      if (
+        activeTag === "INPUT" ||
+        activeTag === "TEXTAREA" ||
+        activeTag === "SELECT"
+      ) {
+        return;
+      }
+      if (e.key === "1") {
+        e.preventDefault();
+        prevCard();
+      } else if (e.key === "2") {
+        e.preventDefault();
+        nextCard();
+      } else if (e.key === "3") {
+        e.preventDefault();
+        toggleAnswer();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [currentIndex, vocabularies.length, prevCard, nextCard, toggleAnswer]);
 
   // Initial load
   useEffect(() => {
