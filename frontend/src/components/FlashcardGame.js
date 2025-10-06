@@ -9,6 +9,8 @@ const FlashcardGame = () => {
   const [showAnswer, setShowAnswer] = useState(false);
   const [studiedCount, setStudiedCount] = useState(0);
   const [memorizedCount, setMemorizedCount] = useState(0);
+  const [answerInput, setAnswerInput] = useState("");
+  const [answerStatus, setAnswerStatus] = useState(null); // null | "correct" | "incorrect"
   const [pagination, setPagination] = useState({
     current: 1,
     total: 1,
@@ -138,6 +140,24 @@ const FlashcardGame = () => {
   // Toggle answer
   const toggleAnswer = () => {
     setShowAnswer((prev) => !prev);
+  };
+
+  // Reset input and status whenever switching card or side
+  useEffect(() => {
+    setAnswerInput("");
+    setAnswerStatus(null);
+  }, [currentIndex, showAnswer]);
+
+  const normalize = (text) =>
+    (text || "")
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s'-]/g, "")
+      .replace(/\s+/g, " ");
+
+  const checkAnswer = (correct) => {
+    const isCorrect = normalize(answerInput) === normalize(correct);
+    setAnswerStatus(isCorrect ? "correct" : "incorrect");
   };
 
   // Initial load
@@ -356,12 +376,57 @@ const FlashcardGame = () => {
 
               <div
                 style={{
-                  fontSize: "18px",
-                  color: "#007bff",
-                  marginBottom: "10px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "8px",
+                  width: "100%",
+                  maxWidth: "300px",
+                  margin: "0 auto 10px",
                 }}
+                onClick={(e) => e.stopPropagation()}
               >
-                {currentVocab.english}
+                <input
+                  type="text"
+                  placeholder="Nhập từ tiếng Anh"
+                  value={answerInput}
+                  onChange={(e) => {
+                    setAnswerInput(e.target.value);
+                    setAnswerStatus(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      setAnswerStatus(null);
+                      checkAnswer(currentVocab.english);
+                    }
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    fontSize: "16px",
+                    border: "2px solid #007bff",
+                    borderRadius: "8px",
+                    outline: "none",
+                  }}
+                />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    checkAnswer(currentVocab.english);
+                  }}
+                  className="btn btn-primary"
+                  style={{ padding: "8px 12px", fontSize: "14px" }}
+                >
+                  Kiểm tra
+                </button>
+                {answerStatus === "correct" && (
+                  <div style={{ color: "#28a745", fontWeight: "bold" }}>
+                    ✅ Chính xác!
+                  </div>
+                )}
+                {answerStatus === "incorrect" && (
+                  <div style={{ color: "#dc3545" }}>❌ Chưa đúng</div>
+                )}
               </div>
 
               {currentVocab.pronunciation && (
