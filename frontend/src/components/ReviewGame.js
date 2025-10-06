@@ -403,6 +403,10 @@ const ReviewGame = () => {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
+                opacity: isMatched ? 0.35 : 1,
+                filter: isMatched ? "grayscale(0.6)" : "none",
+                transition: "opacity 200ms ease, filter 200ms ease",
+                pointerEvents: isMatched ? "none" : "auto",
               }}
             >
               {card.text}
