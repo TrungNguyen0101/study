@@ -407,7 +407,7 @@ const ReviewGame = () => {
                 alignItems: "center",
                 justifyContent: "center",
                 position: "relative",
-                opacity: isMatched ? 0.35 : 1,
+                opacity: isMatched ? 0.6 : 1,
                 filter: isMatched ? "grayscale(0.6)" : "none",
                 transition:
                   "opacity 200ms ease, filter 200ms ease, box-shadow 200ms ease, border-color 200ms ease",
@@ -418,7 +418,7 @@ const ReviewGame = () => {
                       const hue = ((card.pairIndex || 1) * 57) % 360;
                       const color = `hsl(${hue}, 70%, 45%)`;
                       return {
-                        border: `2px solid ${color}`,
+                        border: `2px solid black`,
                         boxShadow: `0 0 0 3px rgba(0,0,0,0.03), 0 0 8px ${color}33`,
                       };
                     })()
