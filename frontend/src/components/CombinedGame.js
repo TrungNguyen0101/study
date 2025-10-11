@@ -102,26 +102,33 @@ const CombinedGame = () => {
   // Render game hiện tại
   const renderCurrentGame = () => {
     console.log(`🎮 Rendering game: ${currentGame}, key: ${gameKey}`);
-    switch (currentGame) {
-      case "multiple-choice":
-        return (
-          <MultipleChoiceGame
-            key={`multiple-choice-${gameKey}`}
-            onStatsUpdate={(stats) => updateGameStats("multipleChoice", stats)}
-            onGameComplete={switchToRandomGame}
-          />
-        );
-      case "fill-blank":
-        return (
-          <FillBlankGame
-            key={`fill-blank-${gameKey}`}
-            onStatsUpdate={(stats) => updateGameStats("fillBlank", stats)}
-            onGameComplete={switchToRandomGame}
-          />
-        );
-      default:
-        return <div>Đang tải game...</div>;
-    }
+    return (
+      <MultipleChoiceGame
+        key={`multiple-choice-${gameKey}`}
+        onStatsUpdate={(stats) => updateGameStats("multipleChoice", stats)}
+        onGameComplete={switchToRandomGame}
+      />
+    );
+    // switch (currentGame) {
+    //   case "multiple-choice":
+    //     return (
+    //       <MultipleChoiceGame
+    //         key={`multiple-choice-${gameKey}`}
+    //         onStatsUpdate={(stats) => updateGameStats("multipleChoice", stats)}
+    //         onGameComplete={switchToRandomGame}
+    //       />
+    //     );
+    //   case "fill-blank":
+    //     return (
+    //       <FillBlankGame
+    //         key={`fill-blank-${gameKey}`}
+    //         onStatsUpdate={(stats) => updateGameStats("fillBlank", stats)}
+    //         onGameComplete={switchToRandomGame}
+    //       />
+    //     );
+    //   default:
+    //     return <div>Đang tải game...</div>;
+    // }
   };
 
   return (
