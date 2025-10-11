@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import vocabularyAPI from "../services/api";
-import { speakEnglishWord, debugVoices } from "../utils/speechUtils";
 
 const MultipleChoiceGame = ({ onStatsUpdate, onGameComplete }) => {
   const [currentQuestion, setCurrentQuestion] = useState(null);
@@ -82,35 +81,11 @@ const MultipleChoiceGame = ({ onStatsUpdate, onGameComplete }) => {
       });
     }
 
-    // Phát âm từ tiếng Anh và tự động chuyển câu khi trả lời đúng
+    // Phát âm từ tiếng Anh khi trả lời đúng
     if (isCorrect) {
       setTimeout(() => {
         speakWord(currentQuestion.english);
       }, 500);
-
-      // Tự động chuyển sang câu tiếp theo sau khi phát âm
-      setTimeout(() => {
-        console.log("⏰ Timeout triggered for correct answer");
-        if (onGameComplete) {
-          console.log("🎯 Calling onGameComplete callback");
-          onGameComplete(); // Gọi callback để chuyển game
-        } else {
-          console.log("🔄 Fallback: loading new question");
-          loadNewQuestion(); // Fallback về logic cũ
-        }
-      }, 2000); // Delay 2 giây để người dùng có thời gian nghe phát âm và xem kết quả
-    } else {
-      // Khi trả lời sai, cũng tự động chuyển game sau 3 giây
-      setTimeout(() => {
-        console.log("⏰ Timeout triggered for wrong answer");
-        if (onGameComplete) {
-          console.log("🎯 Calling onGameComplete callback");
-          onGameComplete(); // Gọi callback để chuyển game
-        } else {
-          console.log("🔄 Fallback: loading new question");
-          loadNewQuestion(); // Fallback về logic cũ
-        }
-      }, 3000); // Delay 3 giây để người dùng có thời gian xem đáp án đúng
     }
 
     // Cập nhật trạng thái review trong database
@@ -119,11 +94,6 @@ const MultipleChoiceGame = ({ onStatsUpdate, onGameComplete }) => {
         .updateReview(currentQuestion.vocabularyId)
         .catch(console.error);
     }
-  };
-
-  // Tiếp tục câu hỏi tiếp theo
-  const handleNextQuestion = () => {
-    loadNewQuestion();
   };
 
   // Restart game
@@ -358,30 +328,40 @@ const MultipleChoiceGame = ({ onStatsUpdate, onGameComplete }) => {
             </div>
           )}
 
-          {/* Hiển thị thông báo tự động chuyển */}
-          {selectedAnswer === currentQuestion.correctAnswerIndex ? (
+          {/* Hiển thị thông báo phát âm khi đúng */}
+          {selectedAnswer === currentQuestion.correctAnswerIndex && (
             <div
               style={{
                 fontSize: "16px",
                 color: "#28a745",
                 fontStyle: "italic",
                 marginTop: "10px",
+                marginBottom: "10px",
               }}
             >
-              🔊 Đang phát âm... Tự động chuyển câu sau 2 giây
-            </div>
-          ) : (
-            <div
-              style={{
-                fontSize: "16px",
-                color: "#dc3545",
-                fontStyle: "italic",
-                marginTop: "10px",
-              }}
-            >
-              ⏰ Tự động chuyển câu sau 3 giây
+              🔊 Đang phát âm từ...
             </div>
           )}
+
+          {/* Hiển thị nút "Tiếp theo" cho cả đúng và sai */}
+          <button
+            onClick={() => {
+              if (onGameComplete) {
+                onGameComplete();
+              } else {
+                loadNewQuestion();
+              }
+            }}
+            className="btn btn-success"
+            style={{
+              padding: "14px 30px",
+              fontSize: "18px",
+              fontWeight: "bold",
+              marginTop: "15px",
+            }}
+          >
+            ➡️ Tiếp theo
+          </button>
         </div>
       )}
 
@@ -427,12 +407,12 @@ const MultipleChoiceGame = ({ onStatsUpdate, onGameComplete }) => {
           <li>Chọn nghĩa tiếng Việt đúng trong 4 đáp án</li>
           <li>Click 🔊 để nghe phát âm từ</li>
           <li>
-            ✅ <strong>Trả lời đúng:</strong> Tự động phát âm và chuyển câu sau
-            2 giây
+            ✅ <strong>Trả lời đúng:</strong> Hệ thống tự động phát âm, click
+            nút "Tiếp theo" để chuyển câu
           </li>
           <li>
-            ❌ <strong>Trả lời sai:</strong> Hiển thị đáp án đúng, tự động
-            chuyển câu sau 3 giây
+            ❌ <strong>Trả lời sai:</strong> Hiển thị đáp án đúng, click nút
+            "Tiếp theo" để chuyển câu
           </li>
           <li>Hệ thống ưu tiên hiển thị từ chưa học và học lâu nhất</li>
           <li>
