@@ -81,6 +81,12 @@ const vocabularyAPI = {
   // Lấy câu hỏi multiple choice
   getMultipleChoiceQuestion: () => api.get("/vocabulary/multiple-choice"),
 
+  // Lấy danh sách câu hỏi multiple choice một lần
+  getMultipleChoiceList: (limit = 10) =>
+    api.get(
+      `/vocabulary/multiple-choice/list?limit=${encodeURIComponent(limit)}`
+    ),
+
   // Lấy câu hỏi điền từ
   getFillBlankQuestion: () => api.get("/vocabulary/fill-blank"),
 

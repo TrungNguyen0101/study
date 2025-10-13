@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import vocabularyAPI from "../services/api";
 
 const MultipleChoiceGame = ({ onStatsUpdate, onGameComplete }) => {
-  const [currentQuestion, setCurrentQuestion] = useState(null);
+  const [questionList, setQuestionList] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const currentQuestion = questionList[currentIndex] || null;
   const [isLoading, setIsLoading] = useState(true);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [showResult, setShowResult] = useState(false);
@@ -27,18 +29,20 @@ const MultipleChoiceGame = ({ onStatsUpdate, onGameComplete }) => {
     }
   };
 
-  // Load câu hỏi mới
-  const loadNewQuestion = async () => {
+  // Load danh sách câu hỏi một lần
+  const loadQuestionList = async () => {
     try {
       setIsLoading(true);
       setSelectedAnswer(null);
       setShowResult(false);
-      const response = await vocabularyAPI.getMultipleChoiceQuestion();
-      setCurrentQuestion(response.data);
+      const response = await vocabularyAPI.getMultipleChoiceList(10);
+      setQuestionList(response.data.questions || []);
+      setCurrentIndex(0);
     } catch (error) {
       console.error("Error loading question:", error);
       // Fallback: hiển thị thông báo không có câu hỏi
-      setCurrentQuestion(null);
+      setQuestionList([]);
+      setCurrentIndex(0);
     } finally {
       setIsLoading(false);
     }
@@ -96,16 +100,35 @@ const MultipleChoiceGame = ({ onStatsUpdate, onGameComplete }) => {
     }
   };
 
+  // Chuyển sang câu tiếp theo trong danh sách
+  const goToNextLocal = () => {
+    setSelectedAnswer(null);
+    setShowResult(false);
+    setCurrentIndex((idx) =>
+      Math.min(idx + 1, Math.max(questionList.length - 1, 0))
+    );
+  };
+
+  // Xáo trộn thứ tự câu hỏi hiện có
+  const shuffleOrder = () => {
+    if (!questionList.length) return;
+    const shuffled = [...questionList].sort(() => 0.5 - Math.random());
+    setQuestionList(shuffled);
+    setCurrentIndex(0);
+    setSelectedAnswer(null);
+    setShowResult(false);
+  };
+
   // Restart game
   const restartGame = () => {
     setStats({ correct: 0, wrong: 0, total: 0 });
     setGameSession({ questionsAnswered: 0, currentStreak: 0, maxStreak: 0 });
-    loadNewQuestion();
+    loadQuestionList();
   };
 
-  // Load câu hỏi đầu tiên
+  // Load danh sách câu hỏi đầu tiên
   useEffect(() => {
-    loadNewQuestion();
+    loadQuestionList();
   }, []);
 
   if (isLoading) {
@@ -148,7 +171,7 @@ const MultipleChoiceGame = ({ onStatsUpdate, onGameComplete }) => {
           >
             Không còn từ nào để luyện tập. Hãy thêm từ vựng mới để tiếp tục học.
           </p>
-          <button onClick={loadNewQuestion} className="btn btn-primary">
+          <button onClick={loadQuestionList} className="btn btn-primary">
             🔄 Thử lại
           </button>
         </div>
@@ -346,10 +369,12 @@ const MultipleChoiceGame = ({ onStatsUpdate, onGameComplete }) => {
           {/* Hiển thị nút "Tiếp theo" cho cả đúng và sai */}
           <button
             onClick={() => {
-              if (onGameComplete) {
+              if (currentIndex < questionList.length - 1) {
+                goToNextLocal();
+              } else if (onGameComplete) {
                 onGameComplete();
               } else {
-                loadNewQuestion();
+                loadQuestionList();
               }
             }}
             className="btn btn-success"
@@ -386,7 +411,7 @@ const MultipleChoiceGame = ({ onStatsUpdate, onGameComplete }) => {
         </button>
 
         <button
-          onClick={loadNewQuestion}
+          onClick={goToNextLocal}
           className="btn btn-warning"
           style={{
             padding: "12px 20px",
@@ -396,6 +421,17 @@ const MultipleChoiceGame = ({ onStatsUpdate, onGameComplete }) => {
           }}
         >
           ⏭️ Bỏ qua
+        </button>
+
+        <button
+          onClick={shuffleOrder}
+          className="btn btn-info"
+          style={{
+            padding: "12px 20px",
+            fontSize: "16px",
+          }}
+        >
+          🔀 Random thứ tự
         </button>
       </div>
 

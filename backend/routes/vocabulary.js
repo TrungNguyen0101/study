@@ -386,6 +386,97 @@ router.get("/multiple-choice", auth, async (req, res) => {
   }
 });
 
+// Lấy danh sách câu hỏi multiple choice một lần (không cần gọi lại sau mỗi lần chọn)
+router.get("/multiple-choice/list", auth, async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10; // số câu hỏi muốn lấy
+
+    // Lấy tất cả từ vựng chưa nhớ theo thứ tự ưu tiên
+    const allVocabularies = await Vocabulary.find({
+      user: req.user._id,
+      memorized: false,
+    }).sort({
+      studied: 1,
+      lastStudied: 1,
+      lastReviewed: 1,
+      createdAt: -1,
+    });
+
+    if (allVocabularies.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "No vocabularies available for quiz" });
+    }
+
+    // Chia nhóm ưu tiên và random trong nhóm
+    const unstudiedWords = allVocabularies.filter((v) => !v.studied);
+    const studiedWords = allVocabularies.filter((v) => v.studied);
+
+    const shuffledUnstudied = unstudiedWords.sort(() => 0.5 - Math.random());
+    const shuffledStudied = studiedWords.sort(() => 0.5 - Math.random());
+
+    // Danh sách ưu tiên (chưa học trước, rồi đã học)
+    const prioritized = [...shuffledUnstudied, ...shuffledStudied];
+
+    // Cắt theo limit để tạo danh sách câu hỏi
+    const selectedForQuestions = prioritized.slice(0, limit);
+
+    // Pool để chọn đáp án sai (lấy nhiều hơn để đa dạng)
+    const distractorPool = allVocabularies.slice(
+      0,
+      Math.min(100, allVocabularies.length)
+    );
+
+    const questions = [];
+
+    for (const correctVocab of selectedForQuestions) {
+      // Lọc các từ khác để làm đáp án sai
+      const otherVocabs = distractorPool.filter(
+        (v) => v._id.toString() !== correctVocab._id.toString()
+      );
+
+      let wrongAnswers = [];
+      if (otherVocabs.length >= 3) {
+        const shuffled = otherVocabs.sort(() => 0.5 - Math.random());
+        wrongAnswers = shuffled
+          .slice(0, 3)
+          .map((v) => v.vietnamese)
+          .filter((ans) => ans && ans !== correctVocab.vietnamese);
+      } else {
+        wrongAnswers.push(...otherVocabs.map((v) => v.vietnamese));
+      }
+
+      // Bổ sung nếu thiếu đáp án sai
+      while (wrongAnswers.length < 3) {
+        const candidate = "Đáp án tạm thời";
+        wrongAnswers.push(candidate);
+      }
+
+      const allAnswers = [correctVocab.vietnamese, ...wrongAnswers.slice(0, 3)];
+      const shuffledAnswers = allAnswers.sort(() => 0.5 - Math.random());
+      const correctAnswerIndex = shuffledAnswers.indexOf(
+        correctVocab.vietnamese
+      );
+
+      questions.push({
+        vocabularyId: correctVocab._id,
+        english: correctVocab.english,
+        pronunciation: correctVocab.pronunciation,
+        wordType: correctVocab.wordType,
+        answers: shuffledAnswers,
+        correctAnswerIndex,
+      });
+    }
+
+    res.json({
+      count: questions.length,
+      questions,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Lấy câu hỏi điền từ
 router.get("/fill-blank", auth, async (req, res) => {
   try {
